@@ -2,3 +2,4 @@ build
 dist
 *.zip
 .attic
+node_modules
