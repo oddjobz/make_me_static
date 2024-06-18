@@ -13,9 +13,11 @@
 import { computed, watch, onMounted } from 'vue';
 import { useConfirm } from "primevue/useconfirm";
 import { useRouteStore } from '@/stores/routeStore.js';
+import { useLogger } from './OrbitLogger.js'
 
 const routeStore    = useRouteStore(window.pinia);
 const confirm       = useConfirm();
+const log           = useLogger()
 const message       = '<p>In order to use this software you must agree to our general terms and conditions and terms and conditions specific to this service.'+
                       ' Note that this service is <b>FREE</b> to use <b>UNLESS</b> you specifically upgrade to a paid tier and provide credit card details.</p>'
 const props         = defineProps(['answer', 'checked', 'root'])
@@ -31,7 +33,7 @@ watch (answer, (curr,prev) => {
     doConfirm ()
 })
 function doConfirm () {
-    console.log("** DO CONFIRM **", answer, answer.value)
+    log.debug ("** DO CONFIRM **", answer, answer.value)
     if (answer.value) return
     confirm.require({
         group: 'confirmtac',

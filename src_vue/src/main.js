@@ -4,7 +4,6 @@ import { createPinia } from 'pinia';
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { OrbitConnection, BaseClass } from '@/../node_modules/orbit-component-base'
 import { menu as orbit_component_mmsdir } from '@/components/mmsdir.js';
-import VueLogger from 'vuejs3-logger';
 import PrimeVue from 'primevue/config';
 import App from './App.vue'
 import metadata from '@/../package.json';
@@ -14,18 +13,7 @@ const router = createRouter({ history: createWebHashHistory(), routes: [] })
 const pinia = createPinia()
 window.pinia = pinia
 
-const isProduction = process.env.NODE_ENV === 'production';
-const options = {
-    isEnabled: true,
-    // logLevel : isProduction ? 'error' : 'debug',
-    logLevel: 'debug',
-    stringifyArguments : false,
-    showLogLevel : true,
-    showMethodName : true,
-    separator: '|',
-    showConsoleColors: true
-};
-const app = createApp(App).use(VueLogger, options);
+const app = createApp(App)
 const menu = reactive([])
 
 app.metadata = metadata

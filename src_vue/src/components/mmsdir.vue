@@ -65,6 +65,7 @@ import TermsAndConditions from "@/components/termsandconditions.vue";
 import ConfirmDialog from 'primevue/confirmdialog';
 import Checkbox from 'primevue/checkbox';
 import pkg from '../../package.json';
+import { useLogger } from './OrbitLogger.js'
 //
 //  RouteStore
 //
@@ -101,27 +102,28 @@ const state         = ref(1)
 const loaded        = ref(false)
 const apiurl        = ref(window.MMS_API_Settings.apiurl)
 const nonce         = ref(window.MMS_API_Settings.nonce)
+const log           = useLogger()
 //
 //  Wait for the Vue Router to come ready
 //
 onMounted(async () => {
-    app.$log.debug('Waiting for VUE Router')
+    log.debug('Waiting for VUE Router')
     await vrouter.isReady()
-    app.$log.debug('Ready')
+    log.debug('Ready')
 })
 //
 //  These are the triggers that change our state
 //
 watch (auth1, () => {
-    app.$log.debug('Register with Wordpress')
+    log.debug('Register with Wordpress')
     registerWithWordpress()
 })  // Initial Connection to Orbit
 watch (auth2, () => {
-    app.$log.debug('Load the Route Store')
+    log.debug('Load the Route Store')
     loadRoute()
 })  // Connection to Direcory App
 watch (route, () => {
-    app.$log.debug('Load the Crawler')
+    log.debug('Load the Crawler')
     if (route.value.answer) loadCrawler (); else state.value = 2
 })
 //
@@ -141,23 +143,23 @@ function registerWithWordpress () {
     fetch(url.href, params).then (async (response) => {
         switch (response.status) {
             case 200:
-                app.$log.debug('Registered with Wordpress')
+                log.debug('Registered with Wordpress')
                 window.make_me_static = window.MMS_API_Settings
                 window.make_me_static.host_id = host_id
                 conn = await plugin (opt, namespace, socket);
                 conn.events.authenticated = () => auth2.value = true
                 break;
             case 403:
-                app.$log.error('Access Denied trying to register with Wordpress')
+                log.error('Access Denied trying to register with Wordpress')
                 state.value = 4;
                 break;
             default:
-                app.$log.error('Access Denied trying to register with Wordpress')
-                app.$log.error("ERROR: Status = ", response.status)
+                log.error('Access Denied trying to register with Wordpress')
+                log.error("ERROR: Status = ", response.status)
         }
     })
     .catch ((error) => {
-        app.$log.error(error)
+        log.error(error)
     })
 }
 //
@@ -167,13 +169,13 @@ function loadRoute () {
     let store = routeStore.init(app, root.value, socket.value)    
     store.validate(root.value, (response) => {
         if (!response||!response.ok) {
-            app.$log.error("validation failed", response)
+            log.error("validation failed", response)
             unauthorized.value = true
             return
         }
         store.populate(root.value, (response) => {
             if (!response || !response.ok || !route_ids.value.length) {
-                app.$log("populate failed", response)
+                log("populate failed", response)
                 unauthorized.value = true
                 return
             }
@@ -198,18 +200,18 @@ function loadCrawler () {
     url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
     const js = document.createElement('script');
     js.addEventListener('load', () => {
-        app.$log.debug("Crawler loaded")
+        log.debug("Crawler loaded")
         have_app.value = true;
         state.value = 0;
     });
     js.addEventListener('error', () => {
-        app.$log.error('failed to load:', url)
+        log.error('failed to load:', url)
     });
     js.type="module"
     js.id = "mms-crawler-app";
     js.src = url
     document.body.appendChild(js);
-    app.$log.debug('..loading..')
+    log.debug('..loading..')
 }
 </script>
 
@@ -219,16 +221,18 @@ function loadCrawler () {
 //
 import { defineStore } from 'pinia';
 import { OrbitComponentMixin } from '@/../node_modules/orbit-component-base';
+import { useLogger } from './OrbitLogger.js'
 
 const namespace = 'mmsdir'
 const mixin = OrbitComponentMixin(namespace, defineStore)
 const opt = ref(null)
 const app = ref(null)
+const log = useLogger()
 
 export default defineComponent({
     name: namespace,
     install (vue, options) {
-        console.log('Loading directory service: ', pkg.version)
+        log.debug ('Loading directory service: ', pkg.version)
         mixin.install (vue, options, this, app, opt)
     },
 })
