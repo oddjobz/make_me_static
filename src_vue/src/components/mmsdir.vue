@@ -103,6 +103,7 @@ const loaded        = ref(false)
 const apiurl        = ref(window.MMS_API_Settings.apiurl)
 const nonce         = ref(window.MMS_API_Settings.nonce)
 const log           = useLogger()
+const crawler_app   = ref(null)
 //
 //  Wait for the Vue Router to come ready
 //
@@ -111,6 +112,11 @@ onMounted(async () => {
     await vrouter.isReady()
     log.debug('Ready')
 })
+
+const emitRoute = () => {
+    window.dispatchEvent(new CustomEvent('MMS_NEW_ROUTE', {detail: route.value}))
+}
+
 //
 //  These are the triggers that change our state
 //
@@ -122,9 +128,14 @@ watch (auth2, () => {
     log.debug('Load the Route Store')
     loadRoute()
 })  // Connection to Direcory App
-watch (route, () => {
-    log.debug('Load the Crawler')
-    if (route.value.answer) loadCrawler (); else state.value = 2
+watch (route, (curr, prev) => {
+    if (!prev || (curr.url != prev.url)) {
+        log.debug('Load the Crawler', curr.url, prev)
+        if (route.value.answer) loadCrawler (); else state.value = 2
+    } else {
+        log.debug("No Change")
+    }
+    emitRoute()
 })
 //
 //  Register our host_id with Wordpress to the MMS service can validate
@@ -166,7 +177,8 @@ function registerWithWordpress () {
 //  Initialise out DataStore (for routes) and populate 
 //
 function loadRoute () {
-    let store = routeStore.init(app, root.value, socket.value)    
+    let store = routeStore.init(app, root.value, socket.value)
+    window.routeStore = store  
     store.validate(root.value, (response) => {
         if (!response||!response.ok) {
             log.error("validation failed", response)
@@ -193,16 +205,48 @@ function loadRoute () {
 //  
 //  TODO :: beef up logging / error detection
 //
+// function reLoadCrawler () {
+//     var script = document.getElementById('mms-crawler-app')
+//     if (script != null) {
+//         state.value = 1
+//         log.debug ('Unmounting old version')
+//         window.mms_crawler_app.unmount()
+//         log.warn ('Removing old tag', script)
+//         script.parentNode.removeChild( script )
+//         setTimeout (() => {
+//             loadCrawler()
+//         },1)
+//     } else loadCrawler ()
+// }
+
 function loadCrawler () {
+    let application = null
+    state.value = 1
+    if (!window.mms_crawlers) {
+        window.mms_crawlers = new Map()
+    }
+    const oldKey = MMS_API_Settings.crawler
+    if (crawler_app.value) {
+        log.info ('Cleaning up previous crawler instance')
+        crawler_app.value.unmount()
+        var script = document.getElementById('mms-crawler-app')
+        if (script != null) {
+            log.info ('Removing old tag')
+            script.parentNode.removeChild( script )
+        }
+    }
     window.make_me_static.crawler = route.value.url
     window.MMS_API_Settings.crawler = route.value.url
     const url = new URL(route.value.url);
     url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
     const js = document.createElement('script');
     js.addEventListener('load', () => {
-        log.debug("Crawler loaded")
+        const factory = window.mms_crawlers.get(MMS_API_Settings.crawler)
+        crawler_app.value = factory.create()
+        crawler_app.value.mount('#mms-crawler')
         have_app.value = true;
         state.value = 0;
+        setTimeout(() => emitRoute(), 500)
     });
     js.addEventListener('error', () => {
         log.error('failed to load:', url)
@@ -212,7 +256,53 @@ function loadCrawler () {
     js.src = url
     document.body.appendChild(js);
     log.debug('..loading..')
+
+
+    // log.warn ('Loading new version => ', route.value.url)
+    // var script = document.getElementById('mms-crawler-app')
+    // if (script != null) {
+    //     const key = MMS_API_Settings.crawler
+    //     log.info ('Unmounting old version', key)
+    //     console.log("Crawlers>", mms_crawlers)
+    //     console.log("HAS: ", window.mms_crawlers.has(key))
+    //     let app = window.mms_crawlers.get(key)
+    //     app.unmount()
+    //     log.warn ('Removing old tag')
+    //     script.parentNode.removeChild( script )
+    // }
+    // window.make_me_static.crawler = route.value.url
+    // window.MMS_API_Settings.crawler = route.value.url
+    // const url = new URL(route.value.url);
+    // url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
+    // const key = MMS_API_Settings.crawler
+    // // if (window.mms_crawlers.has(key)) {
+    // //     log.warn('experimental reload')
+    // //     let app = window.mms_crawlers.get(key)
+    // //     app.mount('#mms-crawler')
+    // // } else {
+    // const js = document.createElement('script');
+    // js.addEventListener('load', () => {
+    //     const key = MMS_API_Settings.crawler
+    //     log.debug("Crawler loaded", key)
+    //     console.log("Crawlers>", mms_crawlers)
+    //     console.log("HAS: ", window.mms_crawlers.has(key))
+    //     let app = window.mms_crawlers.get(key)
+    //     log.info ('Mount => ', app)
+    //     app.mount('#mms-crawler')
+    //     have_app.value = true;
+    //     state.value = 0;
+    //     emitRoute()
+    // });
+    // js.addEventListener('error', () => {
+    //     log.error('failed to load:', url)
+    // });
+    // js.type="module"
+    // js.id = "mms-crawler-app";
+    // js.src = url
+    // document.body.appendChild(js);
+    // log.debug('..loading..')
 }
+
 </script>
 
 <script>
