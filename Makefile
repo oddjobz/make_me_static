@@ -1,6 +1,6 @@
 #
-#	Makefile - build the make_me_static plugin (.zip) file
-#
+#	MMS Wordpress Plugin / Directory Client
+#	(c) Mad Penguin Consulting Ltd 2024
 #
 PHPSRC=src_php
 VUESRC=src_vue
@@ -9,10 +9,10 @@ BUILD=${BUILDROOT}/make-me-static
 DISTFILE=make-me-static.zip
 
 .phoney:
-	all builda sync
+	all build
 
 all:
-	@echo "Nothing to see here - try 'build'"
+	@echo "Nothing to see here - try 'make build'"
 
 build: build_clean build_base build_vue build_php build_zip
 
@@ -50,13 +50,17 @@ build_php:
 
 build_vue:
 #
-#	Install Javascript assets
+#	Install unscoped CSS
 #
-	@echo Pass
-	@mkdir -p ${BUILD}/assets
-#	@cp -ra ../mms_directory/client/dist/assets ${BUILD}
-#	@cp -ra ../mms_directory/client/public/theme.css ${BUILD}/admin/css/mm-static-theme.css
-#	@cp -ra ../mms_directory/client/public/admin.css ${BUILD}/admin/css/mm-static-admin.css
+ 	@mkdir -p ${BUILD}/assets
+	@cp -ra ../mms_directory/client/public/theme.css ${BUILD}/admin/css/mm-static-theme.css
+	@cp -ra ../mms_directory/client/public/admin.css ${BUILD}/admin/css/mm-static-admin.css
+#
+#	We 'could' include this in the repo and use it locally. It makes more sense from a maintenance
+#	perspective to load it from the directory servier as this reduces the frequency with which the
+#	user will need to update the plugin. All the code should be GPLv2 compliant.
+#
+# 	@cp -ra ../mms_directory/client/dist/assets ${BUILD}
 
 build_zip:
 #
@@ -65,8 +69,3 @@ build_zip:
 	@(cd ${BUILDROOT} && zip -rq make-me-static.zip make-me-static)
 	@echo "Build complete."
 #
-#	
-#
-sync:
-	rsync -rav ${BUILD}/* /var/www/live_linuxcouk/wp-content/plugins/make-me-static/
-	chown -R www-data:www-data /var/www/live_linuxcouk/wp-content/plugins/make-me-static/

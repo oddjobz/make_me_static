@@ -11,18 +11,16 @@ import ConfirmationService from 'primevue/confirmationservice';
 
 const router = createRouter({ history: createWebHashHistory(), routes: [] })
 const pinia = createPinia()
-window.pinia = pinia
-
 const app = createApp(App)
 const menu = reactive([])
 
 app.metadata = metadata
 app.metadata.components = new Map()
 pinia.use(BaseClass)
-app.use(OrbitConnection)
+app.use(pinia)
+app.use(OrbitConnection, {pinia: pinia})
 app.provide('$menu', menu)
 orbit_component_mmsdir(app, router, menu);
-app.use(pinia)
 app.use(router)
 app.use(PrimeVue)
 app.use(ConfirmationService);

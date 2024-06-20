@@ -4,8 +4,10 @@ import { defineStore } from 'pinia'
 
 export const useRouteStore = defineStore('routeStore', {
     state: () => {
+        const { nonce, ...mms } = window.MMS_API_Settings
         return {
             model: 'route',
+            mms: mms
         }
     },
     actions: {
@@ -19,8 +21,8 @@ export const useRouteStore = defineStore('routeStore', {
                 label: label,
                 component: label,
                 method: `api_${this.model}_get_ids`,
-                uuid: window.make_me_static.uuid,
-                make_me_static: window.make_me_static
+                uuid: this.mms.uuid,
+                make_me_static: this.mms
             }
             this.query(params,(response) => {
                 if (!response || !response.ok) throw new Error(response ? response.error : `no query: ${method}`)
@@ -33,10 +35,10 @@ export const useRouteStore = defineStore('routeStore', {
         //
         validate (root, callback=null) {
             let params = {
-                uuid: window.make_me_static.uuid,
-                url: window.make_me_static.url,
-                user: window.make_me_static.user,
-                make_me_static: window.make_me_static
+                uuid: this.mms.uuid,
+                url: this.mms.url,
+                user: this.mms.user,
+                make_me_static: this.mms
             }
             const socket = this._sockets.get(root)
             if (!socket) throw 'socket not initialised'
@@ -49,13 +51,13 @@ export const useRouteStore = defineStore('routeStore', {
         //
         confirm_tacs (root, answer, callback=null) {
             let params = {
-                uuid: window.make_me_static.uuid,
-                url: window.make_me_static.url,
+                uuid: this.mms.uuid,
+                url: this.mms.url,
                 answer: answer
             }
             const socket = this._sockets.get(root)
             if (!socket) throw 'socket not initialised'
-            params['make_me_static'] = window.make_me_static
+            params['make_me_static'] = this.mms
             socket.emit('confirm_tacs', params, (response) => {
                 if (callback) callback(response)
             })

@@ -1,8 +1,5 @@
-<!--
-    This is the directory application - not hugely complicated.
-    * Includes a "read terms" gateway for first time users
-    * Dynamically loads the UI from an appropriate server based on license/route
--->
+<!-- Template for MMS Directory Application -->
+<!-- Scoped CSS only, see theme.css and admin.css for globally scoped CSS -->
 
 <template>
     <section class="content mmsdir">
@@ -61,11 +58,11 @@
 import ProgressSpinner from 'primevue/progressspinner';
 import { defineComponent, ref, watch, computed, inject, onMounted, toRaw, readonly } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useLogger } from './OrbitLogger.js'
 import TermsAndConditions from "@/components/termsandconditions.vue";
 import ConfirmDialog from 'primevue/confirmdialog';
 import Checkbox from 'primevue/checkbox';
 import pkg from '../../package.json';
-import { useLogger } from './OrbitLogger.js'
 //
 //  RouteStore
 //
@@ -101,72 +98,87 @@ const auth2         = ref(false)
 const state         = ref(1)
 const loaded        = ref(false)
 const apiurl        = ref(window.MMS_API_Settings.apiurl)
-const nonce         = ref(window.MMS_API_Settings.nonce)
+const nonce         = ref(null)
 const log           = useLogger()
 const crawler_app   = ref(null)
 //
 //  Wait for the Vue Router to come ready
 //
 onMounted(async () => {
-    log.debug('Waiting for VUE Router')
+    log.debug ('Loading directory service: ', pkg.version)
+    nonce.value = window.MMS_API_Settings.nonce
     await vrouter.isReady()
-    log.debug('Ready')
 })
-
+//
+//  The value of "route" here is reactive and comes from the directory server. However
+//  we need a read-only copy inside the crawler APP which is connected to a different back-end.
+//  To enable this, whenever the reactive value of route changes, emit it to the crawler
+//  app to emulate direct reactivity.
+//
 const emitRoute = () => {
     window.dispatchEvent(new CustomEvent('MMS_NEW_ROUTE', {detail: route.value}))
 }
-
 //
-//  These are the triggers that change our state
+//  watch auth1 - this happens when we make a new connection to the directory server
+//  so we need to register the connection with Wordpress. This is a form of Nonce which
+//  doesn't expose anything that's not already public.
 //
 watch (auth1, () => {
-    log.debug('Register with Wordpress')
     registerWithWordpress()
-})  // Initial Connection to Orbit
+})
+//  watch auth2 - this happens when we make a virtual connection to the directory application
+//  and means we're able to load data from the service, i.e. our route and license info. So,
+//  do just that, grab our route object.
+//
 watch (auth2, () => {
-    log.debug('Load the Route Store')
     loadRoute()
-})  // Connection to Direcory App
+})
+//
+//  watch route - this will tell us which MMS crawler service to connect to. This may change
+//  dynamically if a license changes or a server is under excessive load. License changes are UI
+//  reactivel, but a crawler change required loading the UI module for that specific crawler, as
+//  crawlers may deploy different versions of the software.
+//
 watch (route, (curr, prev) => {
     if (!prev || (curr.url != prev.url)) {
-        log.debug('Load the Crawler', curr.url, prev)
+        //
+        //  If we've accepted the terms and conditions, then load the crawler
+        //  otherwise, go to the unauthorized page
+        //
         if (route.value.answer) loadCrawler (); else state.value = 2
-    } else {
-        log.debug("No Change")
     }
+    //
+    //  Pass the route object on to the VUE loaded crawler
+    //
     emitRoute()
 })
 //
-//  Register our host_id with Wordpress to the MMS service can validate
+//  Register our host_id with Wordpress so the MMS service can validate
 //  this host_id is allowed to scan the site.
 //
 function registerWithWordpress () {
     if (loaded.value||!auth1.value) return
-    const auth = vroute.query.key ? vroute.query.key : ''
-    let params = {method: 'GET', headers: {'X-WP-Nonce': nonce.value}}
     const url = new URL(apiurl.value + 'mms/v1/register_host');
-    const host_id = connection.hostid
-    let conn = null
-    url.searchParams.set('key', auth);
-    url.searchParams.set('host_id', host_id);
+    url.searchParams.set('host_id', connection.hostid);
     url.searchParams.set('site', window.MMS_API_Settings.uuid);
-    fetch(url.href, params).then (async (response) => {
+    //
+    //  We're passing our own UUID (essentially a password) together with our own
+    //  host_id (which is our PKI secured token) to the WP JSON API. (secured by a Nonce)
+    //
+    fetch(url.href, {method: 'GET', headers: {'X-WP-Nonce': nonce.value}})
+    .then (async (response) => {
         switch (response.status) {
             case 200:
-                log.debug('Registered with Wordpress')
-                window.make_me_static = window.MMS_API_Settings
-                window.make_me_static.host_id = host_id
-                conn = await plugin (opt, namespace, socket);
-                conn.events.authenticated = () => auth2.value = true
-                break;
-            case 403:
-                log.error('Access Denied trying to register with Wordpress')
-                state.value = 4;
+                //
+                //  We're good, make the APP connection and flag "auth2"
+                //
+                window.MMS_API_Settings.host_id = connection.hostid
+                let app = await plugin (opt, namespace, socket);
+                app.events.authenticated = () => auth2.value = true
                 break;
             default:
-                log.error('Access Denied trying to register with Wordpress')
-                log.error("ERROR: Status = ", response.status)
+                log.error('Access Denied trying to register with Wordpress => ', response.status)
+                state.value = 4;
         }
     })
     .catch ((error) => {
@@ -174,135 +186,106 @@ function registerWithWordpress () {
     })
 }
 //
-//  Initialise out DataStore (for routes) and populate 
+//  loadRoute - attempt to populate the routeStore cache, assuming this works
+//  tell the workflow we've completed this stage. This connection is authenticated
+//  so if it fails, we're not allowed to do this.
 //
 function loadRoute () {
     let store = routeStore.init(app, root.value, socket.value)
-    window.routeStore = store  
-    store.validate(root.value, (response) => {
-        if (!response||!response.ok) {
-            log.error("validation failed", response)
+    store.populate(root.value, (response) => {
+        if (!response || !response.ok || !route_ids.value.length) {
+            log.error ("failed to populate routeStore", response)
             unauthorized.value = true
             return
         }
-        store.populate(root.value, (response) => {
-            if (!response || !response.ok || !route_ids.value.length) {
-                log("populate failed", response)
-                unauthorized.value = true
-                return
-            }
-            have_route.value = true
-        })
-    })
+        have_route.value = true
+    })    
 }
 //
-//  Load up the relevant MMS crawler. Unfortunately this needs to be dynamic.
-//  The UI loads off the crawler in question, and the crawler is chosen based
-//  on the license and route return from the directory server. Each crawler
-//  can run a different version of the software which means different versions
-//  can be in service at the same time. Given the nature of crawler this is
-//  absolutely necessary for sorting glitches and edge cases for specific sites.
-//  
-//  TODO :: beef up logging / error detection
+//  loadCrawler - load up the current version of the crawler UI from the
+//  crawler associated with the user's license. This allows the account
+//  to be upgraded, or switched between crawlers in real-time. (and allows
+//  for different crawlers running different versions of the software)
 //
-// function reLoadCrawler () {
-//     var script = document.getElementById('mms-crawler-app')
-//     if (script != null) {
-//         state.value = 1
-//         log.debug ('Unmounting old version')
-//         window.mms_crawler_app.unmount()
-//         log.warn ('Removing old tag', script)
-//         script.parentNode.removeChild( script )
-//         setTimeout (() => {
-//             loadCrawler()
-//         },1)
-//     } else loadCrawler ()
-// }
 
 function loadCrawler () {
-    let application = null
+    //
+    //  This will hold a reference to our SCRIPT tag
+    //
+    let script
+    //
+    //  Set the spinner in motion
+    //
     state.value = 1
-    if (!window.mms_crawlers) {
-        window.mms_crawlers = new Map()
-    }
-    const oldKey = MMS_API_Settings.crawler
+    if (!window.mms_crawlers) window.mms_crawlers = new Map()
+    //
+    //  If crawler_app is set, we already have a crawler UI on the screen
+    //  so we need to clean it up.
+    //
     if (crawler_app.value) {
-        log.info ('Cleaning up previous crawler instance')
+        //
+        //  Unmount the Vue Application
+        //
         crawler_app.value.unmount()
-        var script = document.getElementById('mms-crawler-app')
-        if (script != null) {
-            log.info ('Removing old tag')
-            script.parentNode.removeChild( script )
-        }
+        //
+        //  Remove the SCRIPT tag
+        //
+        script = document.getElementById('mms-crawler-app')
+        if (script != null) script.parentNode.removeChild( script )
     }
-    window.make_me_static.crawler = route.value.url
+    //
     window.MMS_API_Settings.crawler = route.value.url
+    //
+    //  Generate a URL to load, if we're on a development server then we'll be loading
+    //  in DEV mode, otherwise it will be a minified asset.
+    //
     const url = new URL(route.value.url);
     url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
-    const js = document.createElement('script');
-    js.addEventListener('load', () => {
+    //
+    //  This is our (very simple but effective) loader
+    //
+    script = document.createElement('script');
+    script.addEventListener('load', () => {
+        //
+        //  Each crawler populates "mms_crawlers[url]" with a factory that can be used
+        //  to generate new instances of the UI.
+        //
         const factory = window.mms_crawlers.get(MMS_API_Settings.crawler)
+        //
+        //  Create a new instance of our VUE.js application
+        //
         crawler_app.value = factory.create()
+        //
+        //  Mount it inside the current window
+        //
         crawler_app.value.mount('#mms-crawler')
         have_app.value = true;
+        //
+        //  Cleat the spinner
+        //
         state.value = 0;
+        //
+        //  Pass the current "route" info to the APP
+        //
         setTimeout(() => emitRoute(), 500)
     });
-    js.addEventListener('error', () => {
+    //
+    //  This could happen ...
+    //
+    script.addEventListener('error', () => {
         log.error('failed to load:', url)
     });
-    js.type="module"
-    js.id = "mms-crawler-app";
-    js.src = url
-    document.body.appendChild(js);
-    log.debug('..loading..')
-
-
-    // log.warn ('Loading new version => ', route.value.url)
-    // var script = document.getElementById('mms-crawler-app')
-    // if (script != null) {
-    //     const key = MMS_API_Settings.crawler
-    //     log.info ('Unmounting old version', key)
-    //     console.log("Crawlers>", mms_crawlers)
-    //     console.log("HAS: ", window.mms_crawlers.has(key))
-    //     let app = window.mms_crawlers.get(key)
-    //     app.unmount()
-    //     log.warn ('Removing old tag')
-    //     script.parentNode.removeChild( script )
-    // }
-    // window.make_me_static.crawler = route.value.url
-    // window.MMS_API_Settings.crawler = route.value.url
-    // const url = new URL(route.value.url);
-    // url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
-    // const key = MMS_API_Settings.crawler
-    // // if (window.mms_crawlers.has(key)) {
-    // //     log.warn('experimental reload')
-    // //     let app = window.mms_crawlers.get(key)
-    // //     app.mount('#mms-crawler')
-    // // } else {
-    // const js = document.createElement('script');
-    // js.addEventListener('load', () => {
-    //     const key = MMS_API_Settings.crawler
-    //     log.debug("Crawler loaded", key)
-    //     console.log("Crawlers>", mms_crawlers)
-    //     console.log("HAS: ", window.mms_crawlers.has(key))
-    //     let app = window.mms_crawlers.get(key)
-    //     log.info ('Mount => ', app)
-    //     app.mount('#mms-crawler')
-    //     have_app.value = true;
-    //     state.value = 0;
-    //     emitRoute()
-    // });
-    // js.addEventListener('error', () => {
-    //     log.error('failed to load:', url)
-    // });
-    // js.type="module"
-    // js.id = "mms-crawler-app";
-    // js.src = url
-    // document.body.appendChild(js);
-    // log.debug('..loading..')
+    //
+    //  Make sure our SCRIPT tag has the right attributes
+    //
+    script.type="module"
+    script.id = "mms-crawler-app";
+    script.src = url
+    //
+    //  Add our new TAG containing the mounted APP to the DOM
+    //
+    document.body.appendChild(script);
 }
-
 </script>
 
 <script>
@@ -311,18 +294,15 @@ function loadCrawler () {
 //
 import { defineStore } from 'pinia';
 import { OrbitComponentMixin } from '@/../node_modules/orbit-component-base';
-import { useLogger } from './OrbitLogger.js'
 
 const namespace = 'mmsdir'
 const mixin = OrbitComponentMixin(namespace, defineStore)
 const opt = ref(null)
 const app = ref(null)
-const log = useLogger()
 
 export default defineComponent({
     name: namespace,
     install (vue, options) {
-        log.debug ('Loading directory service: ', pkg.version)
         mixin.install (vue, options, this, app, opt)
     },
 })
