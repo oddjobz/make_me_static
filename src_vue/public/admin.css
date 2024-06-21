@@ -32,7 +32,6 @@ div.mm-static-main {
 } */
 div#mms-directory {
     position: relative;
-    height: 100vh;
     font-family: var(--font-family);
 }
 div.p-dialog-header .p-dialog-title {

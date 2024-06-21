@@ -15,7 +15,7 @@ import { useConfirm } from "primevue/useconfirm";
 import { useRouteStore } from '@/stores/routeStore.js';
 import { useLogger } from './OrbitLogger.js'
 
-const routeStore    = useRouteStore(window.pinia);
+const routeStore    = useRouteStore();
 const confirm       = useConfirm();
 const log           = useLogger()
 const message       = '<p>In order to use this software you must agree to our general terms and conditions and terms and conditions specific to this service.'+

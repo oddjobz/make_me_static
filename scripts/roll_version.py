@@ -26,6 +26,7 @@ def Process(filename, label, newline):
 v = f'{version["major"]}.{version["minor"]}.{version["sub"]}'
 
 Process('src_php/make-me-static.php', "define( 'MMS_VERSION", f"define( 'MMS_VERSION', '{v}' );")
+Process('src_php/make-me-static.php', ' * Version:', f' * Version:           	{v}')
 Process('src_vue/package.json', '  "version":', f'  "version": "{v}",')
 
 print(f'Updated to: {version["major"]}.{version["minor"]}.{version["sub"]}')
