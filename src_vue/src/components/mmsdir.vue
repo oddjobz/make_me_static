@@ -31,21 +31,35 @@
                 <div class="loading">L O A D I N G ...</div>
             </div>
         </div>
-        <div class="spin-wrapper" v-if="state==2">
+        <div class="spin-wrapper" v-else-if="state==2">
             <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="state=1"/>
         </div>
-        <div class="unauthorized" v-if="state==3">
+        <div class="unauthorized" v-else-if="state==3">
             <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
             <p class="text">
                 <div>Sorry, but you must Accept the Terms and Conditions before you can use this Software.</div>
             </p>
         </div>
-        <div class="unauthorized" v-if="state==4">
+        <div class="unauthorized" v-else-if="state==4">
             <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
             <p class="text">
                 <div>Something went wrong authenticating your account or session</div>
                 <div>Please try logging out of Wordpress and logging back in, if that</div>
                 <div>doesn't work please contact technical support: support@madpenguin.uk</div>
+            </p>
+        </div>
+        <div class="unauthorized" v-else-if="state==5">
+            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
+            <p class="text">
+                <div>Something went wrong authenticating your account or session</div>
+                <div>It looks like the code is trying to load a module from an unauthorized location</div>
+            </p>
+        </div>
+        <div class="unauthorized" v-else-if="state!=0">
+            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
+            <p class="text">
+                <div>Something went wrong authenticating your account or session</div>
+                <div>This looks like a software bug, please report code: {{ state }} to support@madpenguin.uk</div>
             </p>
         </div>
         <div class="spin-wrapper">
@@ -234,6 +248,11 @@ function loadCrawler () {
         if (script != null) script.parentNode.removeChild( script )
     }
     //
+    if (!route.value.url.endsWith('madpenguin.uk')) {
+        state.value = 5
+        log.error ('blocked load from: ', route.value.url)
+        return
+    }
     window.MMS_API_Settings.crawler = route.value.url
     //
     //  Generate a URL to load, if we're on a development server then we'll be loading

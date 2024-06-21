@@ -68,8 +68,8 @@ class MM_Static {
 	 * @since    0.9.0
 	 */
 	public function __construct() {
-		if ( defined( 'MM_STATIC_VERSION' ) ) {
-			$this->version = MM_STATIC_VERSION;
+		if ( defined( 'MMS_VERSION' ) ) {
+			$this->version = MMS_VERSION;
 		} else {
 			$this->version = '0.9.0';
 		}

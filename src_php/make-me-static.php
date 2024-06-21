@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * Currently plugin version.
+ */
+
+define( 'MMS_VERSION', '1.0.20' );
+
+/**
  * Plugin bootstrap file
  *
  * @link		https://madpenguin.uk
@@ -11,7 +17,7 @@
  * Plugin Name:       	Make Me Static
  * Plugin URI:        	https://madpenguin.uk/make-me-static
  * Description:       	Provide admin resources for the Make Me Static Crawler
- * Version:           	1.0.2
+ * Version:           	MMS_VERSION
  * Requires at least: 	6.5
  * Requires PHP:      	7.0
  * Author:            	Mad Penguin Consulting Ltd
@@ -26,13 +32,6 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
-/**
- * Currently plugin version.
- * Start at version 1.0.0 and use SemVer - https://semver.org
- * Rename this for your plugin and update it as you release new versions.
- */
-define( 'MM_STATIC_VERSION', '1.0.2' );
 
 /**
  * The code that runs during plugin activation.
