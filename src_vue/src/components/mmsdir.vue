@@ -62,7 +62,7 @@
                 <div>This looks like a software bug, please report code: {{ state }} to support@madpenguin.uk</div>
             </p>
         </div>
-        <div class="spin-wrapper">
+        <div class="main-display" v-show="state==0">
             <div id="mms-crawler" :style="app_style" />
         </div>
     </section>
@@ -336,15 +336,19 @@ export default defineComponent({
     height:100%;
 }
 .spin-wrapper {
+    height: calc(100vh - 64px);
+    width:100%;
+}
+.main-display {
+    width:100%;
     height: 100%;
-    width: 100%;
 }
 .spinner {
     text-align: center;
-    height: 100%;
-    width: 100%;
     position: absolute;
     top: 40%;
+    min-height: 300px;
+    width:99%;
 }
 .loading {
     font-weight: 800;

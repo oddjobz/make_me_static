@@ -1,7 +1,5 @@
 <?php
 
-define('MMS_DIRECTORY_URL', 'https://mms-directory-dev.madpenguin.uk');
-
 /**
  * The public-facing functionality of the plugin.
  *

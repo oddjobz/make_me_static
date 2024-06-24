@@ -18,7 +18,6 @@ class mms_api {
      * 
      */
 
-    private $directory_url = 'https://mms-directory-dev.madpenguin.uk';
 	private $mount_point = 'mms/v1';
 	private $plugin_name;
 	private $version;

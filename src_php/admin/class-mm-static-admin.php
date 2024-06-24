@@ -1,7 +1,5 @@
 <?php
 
-// define( 'MMS_DIRECTORY_URL', 'https://mms-directory-dev.madpenguin.uk' );
-
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -41,6 +39,18 @@ class mm_static_Admin {
 	 * @var      string    $version    The current version of this plugin.
 	 */
 	private $version;
+
+	/**
+	 * The default directory address
+	 *
+	 * @since    1.0.32
+	 * @access   private
+	 * @var      string    $directory	The default directory address
+	 */
+
+
+	private $directory = 'https://mms-directory-1.madpenguin.uk/';
+
 
 	/**
 	 * Initialize the class and set its properties.
@@ -105,9 +115,9 @@ class mm_static_Admin {
 	 */
 	public function enqueue_scripts() {
 		if (get_current_screen()->base == 'toplevel_page_make-me-static') {
-			$path = str_contains( rest_url(), 'linux.co.uk') ? 'src/main.js' : 'assets/index.js';
+			$path = str_contains( $this->directory, '-dev') ? 'src/main.js' : 'index.js';
 			$my_id = $this->plugin_name.'-directory';
-			wp_enqueue_script( $my_id, 'https://mms-directory-dev.madpenguin.uk/'.$path, array(), $this->version);
+			wp_enqueue_script( $my_id, $this->directory.$path, array(), $this->version);
 			add_filter('script_loader_tag', function($tag, $handle) use ($my_id) {
 				if ( $handle === $my_id) {
 					$tag = str_replace( '<script ', '<script type="module" ', $tag );
