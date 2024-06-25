@@ -91,7 +91,7 @@ class mm_static_Admin {
 			}
 		}
 		function mm_static_init() {
-			print_r("<div class='mm-static-main'><div id='mms-directory'></div></div>");
+			echo "<div class='mm-static-main'><div id='mms-directory'></div></div>";
 		}
 	}
 

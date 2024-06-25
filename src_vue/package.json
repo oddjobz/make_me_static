@@ -1,7 +1,7 @@
 {
   "name": "mms_directory",
   "description": "Make Me Static Directory Service",
-  "version": "1.0.55",
+  "version": "1.0.58",
   "private": true,
   "scripts": {
     "dev": "vite --force",

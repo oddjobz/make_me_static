@@ -571,21 +571,21 @@ class mm_static_Public {
 		);
 		$comment_query = new WP_Comment_Query;
 		$comments = $comment_query->query($args);	
-		print_r('<?xml version="1.0" encoding="UTF-8"?>');
-		print_r('<rss version="2.0">');
-		print_r('<channel>');
+		echo '<?xml version="1.0" encoding="UTF-8"?>';
+		echo '<rss version="2.0">';
+		echo '<channel>';
 		if ($comments) {
 			foreach ($comments as $comment) {
-				print_r('<item>');
-				print_r('<comment_id>' . $comment->comment_ID . '</comment_id>');
-				print_r('<pubDate>' . $comment->comment_date . '</pubDate>');
-				print_r('<link>' . esc_url(get_permalink($comment->comment_post_ID)) . '</link>');
-				print_r('<approved>' . $comment->comment_approved . '</approved>');
-				print_r('</item>');
+				echo '<item>';
+				echo '<comment_id>' . esc_html($comment->comment_ID) . '</comment_id>';
+				echo '<pubDate>' . esc_html($comment->comment_date) . '</pubDate>';
+				echo '<link>' . esc_url(get_permalink($comment->comment_post_ID)) . '</link>';
+				echo '<approved>' . esc_html($comment->comment_approved) . '</approved>';
+				echo '</item>';
 			}
 		}
-		print_r('</channel>');
-		print_r('</rss>');
+		echo '</channel>';
+		echo '</rss>';
 		die;
 	}
 

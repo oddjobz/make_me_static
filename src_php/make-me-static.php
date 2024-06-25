@@ -4,7 +4,7 @@
  * Currently plugin version.
  */
 
-define( 'MMS_VERSION', '1.0.55' );
+define( 'MMS_VERSION', '1.0.58' );
 
 /**
  * Plugin bootstrap file
@@ -17,7 +17,7 @@ define( 'MMS_VERSION', '1.0.55' );
  * Plugin Name:       	Make Me Static
  * Plugin URI:        	https://madpenguin.uk/make-me-static
  * Description:       	Provide admin resources for the Make Me Static Crawler
- * Version:           	1.0.55
+ * Version:           	1.0.58
  * Requires at least: 	6.5
  * Requires PHP:      	7.0
  * Author:            	Mad Penguin Consulting Ltd
