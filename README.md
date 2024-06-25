@@ -71,7 +71,7 @@ Wordpress so the security footprint of the plugin is tiny.
 ### FAQ's
 
 * Are all the features free?
-  * Yes, the license related to number of scans per day, scan rates, database size etc
+  * Yes, the license relates to number of scans per day, scan rates, database size etc
 
 * Will it work on any Wordpress site?
   * In theory yes, although compatibility and interaction with with plugs will vary. The production
@@ -104,7 +104,7 @@ Wordpress so the security footprint of the plugin is tiny.
 * If no changes are detected on the site, will the Git repository see a commit or PR?
   * No. If it does, then the plugin thinks something changed.
 
-* The label next to my profile says "Penging", what does that mean?
+* The label next to my profile says "Pending", what does that mean?
   * It means the plugin thinks "something" has changed on the site. It watches for changes to posts,
     pages, comments, images, plugin updates etc. It might be the change doesn't affect your site so
     a sync will have no effect - but it has no way of know that until you actually do a sync.
