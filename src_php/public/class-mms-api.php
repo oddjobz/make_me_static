@@ -127,7 +127,7 @@ class mms_api {
 		//
 		//	Incoming parameters include the site (a uuid) and host_id
 		//
-		$site = $params->get_param( 'site' );
+		$site = sanitize_text_field($params->get_param( 'site' ));
 		//
 		//	Make sure this request is for us ...
 		//
@@ -136,7 +136,7 @@ class mms_api {
 		//
 		//	Make sure host_id is available and update it's stamp if it already exists
 		//
-		$this->update_metadata ( $params->get_param( 'host_id' ));
+		$this->update_metadata ( sanitize_text_field($params->get_param( 'host_id' )));
 		return new WP_REST_Response( array( 'message' => 'Ok, session registered' ), 200);
 	}
 
@@ -156,7 +156,7 @@ class mms_api {
 		//
 		//	Incoming parameters include the site (a uuid) and host_id and user
 		//
-		$site = $params->get_param( 'site' );
+		$site = sanitize_text_field($params->get_param( 'site' ));
 		//
 		//	Make sure this request is for us ...
 		//
@@ -165,7 +165,7 @@ class mms_api {
 		//
 		//	Check the metadata to see if there is a valid session for this user/host_id
 		//
-		if ($this->is_host_id_valid ($params->get_param( 'user' ), $params->get_param( 'host_id' )))
+		if ($this->is_host_id_valid (sanitize_text_field($params->get_param( 'user' )), sanitize_text_field($params->get_param( 'host_id' ))))
 			return new WP_REST_Response( array( 'message' => 'Ok, host_id attached to a valid session' ), 200);
 		return new WP_REST_Response( array( 'message' => 'Session invalid or expired' ), 403);
 	}
