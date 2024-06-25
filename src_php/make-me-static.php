@@ -26,6 +26,11 @@ define( 'MMS_VERSION', '1.0.53' );
  * License URI:       	https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       	make-me-static
  * Domain Path:       	/languages
+ * 
+ * 	This Plugin employs the following third party libraries;
+ *  - https://github.com/composer/composer (MIT)
+ *  - https://github.com/icamys/php-sitemap-generator (MIT)
+ * 
  */
 
 // If this file is called directly, abort.
