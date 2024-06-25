@@ -2,4 +2,5 @@ build
 dist
 *.zip
 .attic
+.vite
 node_modules
