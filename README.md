@@ -1,2 +1,127 @@
-# make_me_static
-Wordpress Plugin for MMS
+# Make Me Static - Plugin for Wordpress
+
+Welcome to the Make Me Static Plugin for Wordpress. This software aims to create and 
+maintain a static copy of your Wordpress website within a Git repository. The plugin 
+provides a customised sitemap and change tracking, then connects to the MMS service. 
+This external service does all the heavy lifting.
+
+![](images/wizard.jpeg)
+
+### How Does it work?
+
+The Wordpress site is scanned by the MMS service under direction from the Wordpress plugin. This
+off-loads the scanning process to specialised software aims to minimise the loading on the Wordpress server while scans are in progress.
+
+There are three types of scan that can be performed;
+
+* An "update", which literally only looks at entries with changed sitemap timestamps
+  (this is very quick and great for typo's and any changes that only affect a single page)
+  
+* A "synchronise", typically this will scan every asset on the Wordpress site and compare a
+  checksum of each asset against it's database to see if it's changed since the last scan.
+  Any changes are then transferred to the connected Git repository.
+
+* A "Git verification", this is like a "synchronise", but also scans the Git repository for assets
+  that are no longer referenced by the site (and removes them).
+
+As the site is scanned "from the outside" there should be no risk of the plugins actions exposing
+any data that isn't already public. By the same token the external service has no ability to modify
+Wordpress so the security footprint of the plugin is tiny.
+
+### Feature bullet points
+
+* The plugin provides a way to produce a static copy of your website in a git repository
+* The result is compatible with both Github pages and CloudFlare pages for automatic publication
+* Multiple profiles are supported for (A+B_...) testing
+* Various scan rates are supported from one page per 5s to 7 cores flat out
+* Scheduled updates are supported or automated scanning
+* Currently "Gitlab" is supported with plans for GitHub and on-prem Gitlab
+* Support push services (WebPushr) to automatically notify subscribers on scan completion
+* Issue tracker for each profile to diagnose problems
+  * Handles current and historical issues
+  * Ability to acknowlede or delete issues when resolved
+* GUI access to the internal asset database
+  * Search as you type filtering
+  * Pinning (force assets to be scanned regardless of perceived change)
+  * Selective / manual queing of assets for testing
+* Ability to include manual / static assets in the scan (in the WP tree but unmanaged by WP)
+* Ability to exclude specific files and folders
+* Setup Wizard is included for a guided profile creation
+
+### The Technology
+
+![](images/mms.jpeg)
+
+* The Plugin presents as a Wordpress Admin / plugin page
+* Backend connections are made over websockets using PKI
+* The crawler respects Robots.txt, (make sure the "MMSbot" agent is allowed on your site)
+* MMS Javascript runs in an isolated module and CSS "plays nice" with Wordpress
+* Global CSS and themeing is partitioned and user editable (if you feel the need ...)
+* All of the front-end JS code and PHP is either GPL2 or MIT licensed
+* Backend-code is all based on the Orbit Framework (the framework and DB are all MIT licensed)
+* Orbit is a 'real time' framework, so the admin panel is 100% reactive.
+  * Progress bar updates are typically "per percent" granularity
+  * All statuses, totals, etc, are updated as they happen
+  * Unless you've hit a but, there is no mileage in reloading the MMS plugin page
+  * If you change your license information, it will change in real-time
+  * If the crawler allocated to your site changes (perhaps due to a license upgrade) then the
+    appriate version of the crawler UI will be uploaded "into" the page from the new
+    crawler.
+
+### FAQ's
+
+* Are all the features free?
+  * Yes, the license relates to number of scans per day, scan rates, database size etc
+
+* Will it work on any Wordpress site?
+  * In theory yes, although compatibility and interaction with with plugs will vary. The production
+    process tries to be be clever when it comes to rewriting URL's for AJAX, forms etc, but given the
+    number of potential edge cases this will always be ongoing. (please request support for specific
+    plugins if you're having problems. We can't guarantee to add support, but we'll be happy to take
+    a look to see what's involved.)
+
+* How "good" is it?
+  * For a few examples, take a look at;
+    * https://linux.uk
+    * https://madpenguin.uk
+    * https://nutpress.co.uk
+
+* How quick it is? 
+  * This depends to an extent on the speed of your website, but also on the crawl rate you select.
+    If you are running your Wordpress effectively as an off-line copy and presenting your main site
+    as a static, and are prepared to hammer your Wordpress instance when it comes time to update,
+    it's pretty quick.
+
+* Looks like the scan rate isn't being applied?!
+  * The scan rate ONLY affects pages, it is assumed static pages will be subject to caching hence
+    will be scanned as fast as the scanner can go based on the number of cores at it's dispostal.
+
+* The progress bar isn't linear?!
+  * No, it's based on the number of item remaining vs the number scanned. As assets are "discovered",
+    they will be addd to the "pages remaing" total. There is no way of knowing how many assets will
+    be discovered, so the progress indicator is a "best effort".
+
+* If no changes are detected on the site, will the Git repository see a commit or PR?
+  * No. If it does, then the plugin thinks something changed.
+
+* The label next to my profile says "Pending", what does that mean?
+  * It means the plugin thinks "something" has changed on the site. It watches for changes to posts,
+    pages, comments, images, plugin updates etc. It might be the change doesn't affect your site so
+    a sync will have no effect - but it has no way of know that until you actually do a sync.
+
+* How to I add specific static assets to the process?
+  * in your "wp-config.php" file, you need to add a define section, in this example we're including
+    the "static" folder in your wordpress directory, so all assets in this folder tree will be included.
+  ```php
+    define( 'MMS_FOLDER_WLIST', ['static']);
+  ```
+  * To prevent folders from being scanned, in this example we're excluding an entire plugin;
+  ```php
+    define( 'MMS_FOLDER_BLIST', ['wp-content/plugins/my-bad-plugin']);
+  ```
+
+
+
+
+More Detail can be found here ...
+https://madpenguin.uk/make-me-static/
