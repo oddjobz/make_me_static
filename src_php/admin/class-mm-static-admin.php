@@ -49,7 +49,7 @@ class mm_static_Admin {
 	 */
 
 
-	private $directory = 'https://mms-directory-1.madpenguin.uk/';
+	private $directory = 'https://mms-directory-dev.madpenguin.uk/';
 
 
 	/**

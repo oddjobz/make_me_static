@@ -105,7 +105,13 @@ const have_app      = ref(false)
 const have_route    = ref(false)
 const unauthorized  = ref(false)
 const checked       = ref(false)
-const root          = computed(() => opt && opt.router ? opt.router.currentRoute.value.meta.root : null)
+const root          = computed(() => {
+    // console.log("Opt>", opt)
+    // console.log("Router>", opt.router)
+    // console.log("Current>", opt.router.currentRoute.value)
+    // console.log("Root>", opt.router.currentRoute.value.meta.root)
+    return opt && opt.router ? opt.router.currentRoute.value.meta.root : null
+})
 const app_style     = computed(() => have_app.value ? "height:100%;width:100%" : "height:0;width:0")
 const auth1         = computed(() => connection.authenticated)
 const auth2         = ref(false)
@@ -154,7 +160,7 @@ watch (auth2, () => {
 //  crawlers may deploy different versions of the software.
 //
 watch (route, (curr, prev) => {
-    if (!prev || (curr.url != prev.url)) {
+    if (curr && (!prev || (curr.url != prev.url))) {
         //
         //  If we've accepted the terms and conditions, then load the crawler
         //  otherwise, go to the unauthorized page

@@ -17,3 +17,10 @@ export default defineComponent({
   components: {OrbitIO, OrbitDir}
 })
 </script>
+
+
+<!-- <router-view v-slot="{ Component }">
+    <keep-alive>
+        <component :is="Component" :key="$route.fullPath"/>
+    </keep-alive>
+</router-view> -->

@@ -11,6 +11,6 @@ export function menu (app, router, menu) {
         version: version,
         router: router,
         menu: menu,
-        buttons: [{name: '-', text: '', pri: 50, component: OrbitDir, path: "/", meta: {root: 'mmsdir', host: host}}]
+        buttons: [{name: 'default', text: '', pri: 50, component: OrbitDir, path: "/", meta: {root: 'mmsdir', host: host}}]
     })
 }
