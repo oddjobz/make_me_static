@@ -5,22 +5,58 @@
  -->
 <template>
   <orbit-i-o />
-  <orbit-dir />
+    <router-view v-slot="{ Component }">
+        <keep-alive>
+            <component :is="Component" :key="$route.fullPath"/>
+        </keep-alive>
+    </router-view>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
+<script setup>
+import { defineComponent, onMounted, ref, computed, inject, watch } from 'vue';
+import { RouterView } from 'vue-router';
 import { OrbitIO } from 'orbit-component-base';
-import OrbitDir from '@/components/mmsdir.vue'
+import { useRoute, useRouter } from 'vue-router';
+import { useLogger } from '@/components/OrbitLogger.js';
+import pkg from '../package.json';
+//
+const connection    = inject('$connection')
+const authenticated = computed(() => connection.authenticated)
+//
+//
+//
+const vroute        = useRoute()
+const vrouter       = useRouter()
+const log           = useLogger()
+const root          = computed(() => vrouter.currentRoute.value.meta.root)
+//
+//  RouteStore
+//
+import { useRouteStore } from '@/stores/routeStore.js';
+const routeStore    = useRouteStore(window.pinia);
+const route_data    = computed(() => routeStore.data)
+const route_ids     = computed(() => routeStore.ids(root.value))
+const route         = computed(() => route_ids.value.length ? route_data.value.get(route_ids.value[0]) : null)
 
+onMounted(async () => {
+    log.debug ('Loading directory service version ', pkg.version)
+    await vrouter.isReady()
+    console.log (pkg)
+    // log.error ('Path>', vrouter.currentRoute.value.fullPath)
+    // if (vrouter.currentRoute.value.fullPath == '/stripe') vrouter.push('/')
+})
+watch (route, (curr, prev) => {
+    log.info ('Reporting Route Change')
+    window.dispatchEvent(new CustomEvent('MMS_NEW_ROUTE', {detail: route.value}))
+})
+
+</script>
+
+
+<script>
 export default defineComponent({
-  components: {OrbitIO, OrbitDir}
+
 })
 </script>
 
 
-<!-- <router-view v-slot="{ Component }">
-    <keep-alive>
-        <component :is="Component" :key="$route.fullPath"/>
-    </keep-alive>
-</router-view> -->

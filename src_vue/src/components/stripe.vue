@@ -1,6 +1,6 @@
 <template>
     <section class="content stripe">
-        <Dialog v-model:visible="visible" modal header="Subscription Management" style="width:1050px;max-height:95%" class="subscription-dialog">
+        <Dialog :visible="true" modal header="MMS Subscription Management" style="width:1050px;max-height:95%" class="subscription-dialog">
 
             <ConfirmDialog group="templating">
                 <template #message="slotProps">
@@ -11,14 +11,15 @@
                 </template>
             </ConfirmDialog>
 
-            <div v-show="loading" style="width:100%;height: 527px;padding-top:20%;display:flex" class="card flex justify-center">
+            <!-- <div v-show="loading" style="width:100%;height: 527px;padding-top:20%;display:flex" class="card flex justify-center">
                 <ProgressSpinner style="width: 100px; height: 100px" strokeWidth="8" fill="transparent"
                     animationDuration=".5s" aria-label="Custom ProgressSpinner" v-if="!error"/>
                 <div v-else style="width:100%">
                     <div style="color: red;text-align:center;font-weight:600;font-size:1.2em">{{ error }}</div>
                 </div>
-            </div>
-            <div v-show="!loading">
+            </div> -->
+            <!-- <div v-show="!loading"> -->
+            <div>
                 <ul class="products">
                     <li v-for="(val, key) in products" :key="key" style="flex:1">
                         <div 
@@ -142,9 +143,16 @@ import ProgressSpinner from 'primevue/progressspinner';
 import { useConfirm } from "primevue/useconfirm";
 import { useSubsStore } from '@/stores/subsStore.js';
 import { useRouteStore } from '@/stores/routeStore.js';
-
+import { useRoute, useRouter } from 'vue-router';
+//
+//  VUE Router
+//
+const vroute        = useRoute()
+const vrouter       = useRouter()
+//
+//
 import pkg from '../../package.json';
-
+//
 const confirm           = useConfirm();
 const log               = useLogger()
 const plugin            = inject('$orbitPlugin')
@@ -170,6 +178,7 @@ const show_cancellation = ref(false)
 const show_upgrade      = ref(false)
 const loading           = ref(false)
 const error             = ref(null)
+const nonce             = ref(null)
 const route             = computed(() => route_data.value.get(route_ids.value[0]))
 const changed           = computed(() => current_prod.value != selected.value)
 const new_plan          = computed(() => selected.value)
@@ -183,18 +192,18 @@ const days_remaining    = computed(() => {
     if (!route.value) return 0
     return route.value.days - parseInt((new Date() - new Date(route.value.when * 1000))/1000/60/60/24) - 1
 })
-const wizard_image = computed(() => {
-    return `${window.MMS_API_Settings.crawler}/wizard.jpeg`
-})
+const wizard_image = computed(() => pkg.parameters.host + '/wizard.jpeg')
 
 onMounted(async () => {
-    console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    console.log("Opt=", opt)
-    console.log("NS=", namespace)
+    log.debug ('**** ARHRHRH Loading subscription service: ', pkg.version)
+    await vrouter.isReady()
     await plugin (opt, namespace, socket);
     let node = document.createElement ('script')
     node.setAttribute ('src', 'https://js.stripe.com/v3/')
     document.head.appendChild (node)
+    if (authenticated.value) {
+        loadProducts()
+    }
 })
 watch (subscription, () => {
     log.info('Subscription:', subscription.value)
@@ -204,8 +213,12 @@ watch (current_plan, (value) => {
     current_prod.value = value
     selected.value = value
 })
-watch (authenticated, () => {
+watch (authenticated, () => loadProducts())
+
+function loadProducts () {
+    console.log("Authenticated!")
     subsStore.init(app, root.value, socket.value).populate(root.value, (response) => {
+        console.log("Response>", response)
         response.items.map((item) => {
             products.value[item.name] = {
                 'cost': item.price,
@@ -219,7 +232,7 @@ watch (authenticated, () => {
         selected.value = response.data[0].plan
         current_prod.value = response.data[0].plan
     })
-})
+}
 
 function setLoading () { loading.value = true }
 function clrLoading () { loading.value = false }
@@ -405,9 +418,6 @@ ul.products li:not(:nth-child(4)) {
     text-align: justify;
     flex:0;
 } 
-.p-card-title {
-    color: red;
-}
 .dialog-body {
     height: 28em;
 }
@@ -442,6 +452,12 @@ ul.products li:not(:nth-child(4)) {
 .subscription-dialog {
     margin-bottom: 0.4em;
     background-color: #f2f2f2!important;
+}
+.subscription-dialog .p-card .p-card-content {
+    padding: 0;
+}
+.subscription-dialog .p-card-title {
+    line-height: 2em;
 }
 
 </style>

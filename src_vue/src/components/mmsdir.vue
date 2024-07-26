@@ -106,10 +106,6 @@ const have_route    = ref(false)
 const unauthorized  = ref(false)
 const checked       = ref(false)
 const root          = computed(() => {
-    // console.log("Opt>", opt)
-    // console.log("Router>", opt.router)
-    // console.log("Current>", opt.router.currentRoute.value)
-    // console.log("Root>", opt.router.currentRoute.value.meta.root)
     return opt && opt.router ? opt.router.currentRoute.value.meta.root : null
 })
 const app_style     = computed(() => have_app.value ? "height:100%;width:100%" : "height:0;width:0")
@@ -125,7 +121,7 @@ const crawler_app   = ref(null)
 //  Wait for the Vue Router to come ready
 //
 onMounted(async () => {
-    log.debug ('Loading directory service: ', pkg.version)
+    log.debug ('Loading MMS DIR service: ', pkg.version)
     nonce.value = window.MMS_API_Settings.nonce
     await vrouter.isReady()
 })
@@ -160,6 +156,7 @@ watch (auth2, () => {
 //  crawlers may deploy different versions of the software.
 //
 watch (route, (curr, prev) => {
+    console.log("Route change: ", curr, prev)
     if (curr && (!prev || (curr.url != prev.url))) {
         //
         //  If we've accepted the terms and conditions, then load the crawler
@@ -259,6 +256,7 @@ function loadCrawler () {
         log.error ('blocked load from: ', route.value.url)
         return
     }
+    console.log("****** Load Crawler", route.value)
     window.MMS_API_Settings.crawler = route.value.url
     //
     //  Generate a URL to load, if we're on a development server then we'll be loading
