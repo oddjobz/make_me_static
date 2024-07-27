@@ -96,6 +96,8 @@ const vrouter       = useRouter()
 const plugin        = inject('$orbitPlugin')
 const connection    = inject('$connection')
 const socket        = ref({connected:false})
+const active        = computed(() => socket.value.connected)
+const authenticated = computed(() => connection.authenticated)
 //
 //  Application Specific
 //
@@ -124,6 +126,11 @@ onMounted(async () => {
     log.debug ('Loading MMS DIR service: ', pkg.version)
     nonce.value = window.MMS_API_Settings.nonce
     await vrouter.isReady()
+    log.warn('Authenticated=', auth1.value)
+    log.warn('Auth2=', auth2.value)
+    log.warn('State=', state.value)
+    log.warn('Active=', active.value)
+    if (auth1.value) registerWithWordpress()
 })
 //
 //  The value of "route" here is reactive and comes from the directory server. However
@@ -140,6 +147,7 @@ const emitRoute = () => {
 //  doesn't expose anything that's not already public.
 //
 watch (auth1, () => {
+    log.warn ('Event: Auth1')
     registerWithWordpress()
 })
 //  watch auth2 - this happens when we make a virtual connection to the directory application
@@ -147,8 +155,22 @@ watch (auth1, () => {
 //  do just that, grab our route object.
 //
 watch (auth2, () => {
+    log.warn ('Event: Auth2')
     loadRoute()
 })
+
+watch (socket, () => {
+    log.warn ('Event: Socket')
+})
+
+watch (vroute, (curr) => {
+    log.error ('Route Change: ', curr)
+    if (curr.path == '/') {
+        log.info ('Loading MMSDIR Module')
+        onLoadModule()
+    }
+})
+
 //
 //  watch route - this will tell us which MMS crawler service to connect to. This may change
 //  dynamically if a license changes or a server is under excessive load. License changes are UI
@@ -156,7 +178,6 @@ watch (auth2, () => {
 //  crawlers may deploy different versions of the software.
 //
 watch (route, (curr, prev) => {
-    console.log("Route change: ", curr, prev)
     if (curr && (!prev || (curr.url != prev.url))) {
         //
         //  If we've accepted the terms and conditions, then load the crawler
@@ -169,6 +190,19 @@ watch (route, (curr, prev) => {
     //
     emitRoute()
 })
+
+function onLoadModule () {
+    //
+    //  This is what kicks off a load event when we come to the crawler page
+    //
+    log.debug ('onLoadModule')
+    if (!active.value) return log.debug ('not Active')           // socket is not active yet
+    if (!authenticated.value) return log.debug ('not Auth')     // we're not authenticated yet
+    log.debug ('Socket is: ', socket.value)
+    registerWithWordpress ()
+}
+
+
 //
 //  Register our host_id with Wordpress so the MMS service can validate
 //  this host_id is allowed to scan the site.
@@ -191,7 +225,8 @@ function registerWithWordpress () {
                 //
                 window.MMS_API_Settings.host_id = connection.hostid
                 let app = await plugin (opt, namespace, socket);
-                app.events.authenticated = () => auth2.value = true
+                if (socket.value.connected) loadRoute ()
+                else app.events.authenticated = () => auth2.value = true
                 break;
             default:
                 log.error('Access Denied trying to register with Wordpress => ', response.status)
@@ -208,15 +243,19 @@ function registerWithWordpress () {
 //  so if it fails, we're not allowed to do this.
 //
 function loadRoute () {
-    let store = routeStore.init(app, root.value, socket.value)
-    store.populate(root.value, (response) => {
-        if (!response || !response.ok || !route_ids.value.length) {
-            log.error ("failed to populate routeStore", response)
-            unauthorized.value = true
-            return
-        }
-        have_route.value = true
-    })    
+    if (!route_ids.value.length) {
+        let store = routeStore.init(app, root.value, socket.value)
+        store.populate(root.value, (response) => {
+            if (!response || !response.ok || !route_ids.value.length) {
+                log.error ("failed to populate routeStore", response)
+                unauthorized.value = true
+                return
+            }
+            have_route.value = true
+        })
+    } else {
+        loadCrawler()
+    }
 }
 //
 //  loadCrawler - load up the current version of the crawler UI from the
@@ -256,7 +295,6 @@ function loadCrawler () {
         log.error ('blocked load from: ', route.value.url)
         return
     }
-    console.log("****** Load Crawler", route.value)
     window.MMS_API_Settings.crawler = route.value.url
     //
     //  Generate a URL to load, if we're on a development server then we'll be loading
@@ -339,13 +377,13 @@ export default defineComponent({
 .mmsdir {
     height:100%;
 }
-.spin-wrapper {
-    height: calc(100vh - 64px);
-    width:100%;
-}
 .main-display {
     width:100%;
     height: 100%;
+}
+.spin-wrapper {
+    height: calc(100vh - 64px);
+    width:100%;
 }
 .spinner {
     text-align: center;

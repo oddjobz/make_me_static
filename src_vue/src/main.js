@@ -25,10 +25,10 @@ app.provide('$menu', menu)
 orbit_component_mmsdir(app, router, menu);
 orbit_component_stripe(app, router, menu);
 app.use(router)
-setTimeout(() => {
-    router.push('/stripe')
-    console.log("Stripe")    
-}, 10000)
+// setTimeout(() => {
+//     router.push('/stripe')
+//     console.log("Stripe")    
+// }, 10000)
 app.use(PrimeVue)
 app.use(ConfirmationService);
 app.mount('#mms-directory')

@@ -44,6 +44,10 @@ onMounted(async () => {
     console.log (pkg)
     // log.error ('Path>', vrouter.currentRoute.value.fullPath)
     // if (vrouter.currentRoute.value.fullPath == '/stripe') vrouter.push('/')
+    window.addEventListener('MMS_CHANGE_PATH', (payload) => {
+        log.warn ('Request to change path: ', payload)
+        vrouter.push({path: payload.detail})
+    })
 })
 watch (route, (curr, prev) => {
     log.info ('Reporting Route Change')

@@ -1,6 +1,12 @@
 <template>
     <section class="content stripe">
-        <Dialog :visible="true" modal header="MMS Subscription Management" style="width:1050px;max-height:95%" class="subscription-dialog">
+        <Dialog 
+            @update:visible="onHide"
+            modal header="MMS Subscription Management"
+            style="width:1050px;max-height:95%"
+            class="subscription-dialog"
+            :visible="visible"
+            :closeOnEscape="true" :draggable="false">
 
             <ConfirmDialog group="templating">
                 <template #message="slotProps">
@@ -11,15 +17,22 @@
                 </template>
             </ConfirmDialog>
 
-            <!-- <div v-show="loading" style="width:100%;height: 527px;padding-top:20%;display:flex" class="card flex justify-center">
-                <ProgressSpinner style="width: 100px; height: 100px" strokeWidth="8" fill="transparent"
-                    animationDuration=".5s" aria-label="Custom ProgressSpinner" v-if="!error"/>
-                <div v-else style="width:100%">
-                    <div style="color: red;text-align:center;font-weight:600;font-size:1.2em">{{ error }}</div>
+            <div v-show="loading" style="width:100%;height: 527px;display:flex" class="justify-center">
+                <div class="spin-wrapper" v-if="!error">
+                    <div class="spinner">
+                        <ProgressSpinner style="width:70px;height:70px;visibility: visible" strokeWidth="8"/>
+                        <div class="loading">L O A D I N G ...</div>
+                    </div>
                 </div>
-            </div> -->
-            <!-- <div v-show="!loading"> -->
-            <div>
+                <div v-else style="width:100%;height:100%;padding-top:20%">
+                    <div style="color: red;text-align:center;font-weight:600;font-size:1.3em">{{ error }}</div>
+                    <div style="margin-top:1em;color: #999;text-align:center;font-weight:500;font-size:1.1em">
+                        Please visit <a href="https://support.madpenguin.uk" target="_blank">Mad Penguin Support</a> for help
+                    </div>
+                </div>
+            </div>
+
+            <div v-show="!loading">
                 <ul class="products">
                     <li v-for="(val, key) in products" :key="key" style="flex:1">
                         <div 
@@ -30,7 +43,7 @@
                         </div>
                     </li>
                 </ul>
-                <div id="checkout"></div>
+                <div id="checkout" v-show="checkout"></div>
                 <div v-if="!checkout">
                     <Card class="product-description">
                         <template #content>
@@ -47,9 +60,12 @@
                                 <div v-if="selected == 'free'" style="height:100%">
                                     <div class="dialog-content">
                                         <p class="m-0 card-text" >
-                                            <div>
+                                            <div style="margin-bottom: 0.5em">
                                                 This subscription can be upgraded or downgraded at any time. When a subscription is changed
                                                 any fees or refunds are included pro-rata in the next card transaction.
+                                            </div>
+                                            <div>
+                                                Downgrades are available no sooner than 24h after an upgrade.
                                             </div>
                                         </p>
                                         <div style="flex:1"></div>
@@ -100,8 +116,7 @@
                                             You are currently subscribed to the <b>{{ current_plan }}</b> plan which is billed at <b>{{ current_price }}</b>
                                             per month. If you select this option your subscription will be changed to the <b>{{ new_plan }}</b> plan 
                                             <span v-if="selected == 'free'">
-                                                at the end of the current billing cycle in <b>{{ days_remaining }}</b> days time. No more charges will be
-                                                applied to your card.
+                                                at the end of the current billing cycle in <b>{{ days_remaining }}</b> days time.
                                             </span>
                                             <span v-else>
                                                 which is billed at <b>{{ new_price }}</b> per month. Note that your bill for the next billing cycle will be at
@@ -162,7 +177,8 @@ const subsStore         = useSubsStore()
 const routeStore        = useRouteStore()
 const active            = computed(() => socket.value.connected)
 const authenticated     = computed(() => connection.authenticated)
-const visible           = computed(() => subsStore.items.length>0)
+const visible           = ref(false)
+// const visible           = computed(() => subsStore.items.length>0)
 const route_data        = computed(() => routeStore.data)
 const route_ids         = computed(() => routeStore.ids(root.value))
 const root              = computed(() => opt.router  ? opt.router.currentRoute.value.meta.root : '')
@@ -176,9 +192,8 @@ const change_prod       = computed(() => current_prod.value != selected.value)
 const current_prod      = ref(null)
 const show_cancellation = ref(false)
 const show_upgrade      = ref(false)
-const loading           = ref(false)
+const loading           = ref(true)
 const error             = ref(null)
-const nonce             = ref(null)
 const route             = computed(() => route_data.value.get(route_ids.value[0]))
 const changed           = computed(() => current_prod.value != selected.value)
 const new_plan          = computed(() => selected.value)
@@ -195,16 +210,38 @@ const days_remaining    = computed(() => {
 const wizard_image = computed(() => pkg.parameters.host + '/wizard.jpeg')
 
 onMounted(async () => {
-    log.debug ('**** ARHRHRH Loading subscription service: ', pkg.version)
+    if (!opt.router) return vrouter.go()
+    log.debug ('* Loading subscription service: ', pkg.version, opt)
     await vrouter.isReady()
     await plugin (opt, namespace, socket);
-    let node = document.createElement ('script')
-    node.setAttribute ('src', 'https://js.stripe.com/v3/')
-    document.head.appendChild (node)
-    if (authenticated.value) {
-        loadProducts()
+    if (typeof Stripe === 'undefined') {
+        log.debug ('Loading Stripe API')
+        let node = document.createElement ('script')
+        node.setAttribute ('src', 'https://js.stripe.com/v3/')
+        document.head.appendChild (node)
+    }
+    onLoadModule ()
+    //     if (authenticated.value && active.value) {
+    //         loadProducts()
+    //     }
+    // }
+    // visible.value = true
+})
+
+// watch (authenticated, () => {
+//     console.log("Auth=", authenticated.value)
+//     console.log("Active=", active.value)
+//     if (authenticated.value && active.value) loadProducts()
+// })
+watch (vroute, (curr) => {
+    log.error ('Stripe Route Change: ', curr)
+    if (curr.path == '/stripe') {
+        log.info ('Loading MMSDIR Module')
+        onLoadModule()
     }
 })
+
+
 watch (subscription, () => {
     log.info('Subscription:', subscription.value)
 })
@@ -213,25 +250,49 @@ watch (current_plan, (value) => {
     current_prod.value = value
     selected.value = value
 })
-watch (authenticated, () => loadProducts())
+watch (socket, () => {
+    console.log("SOCKET CHANGED!")
+    loadProducts()
+})
+watch (authenticated, () => {
+    console.log("SOCKET CHANGED!")
+    loadProducts()
+})
+
+function onHide () {
+    visible.value = false
+    window.dispatchEvent(new CustomEvent('MMS_CHANGE_PATH', {detail: '/'}))
+}
+
+function onLoadModule () {
+    log.info ('Load Module here!')
+    if (authenticated.value && active.value) loadProducts()
+    visible.value = true
+}
 
 function loadProducts () {
-    console.log("Authenticated!")
-    subsStore.init(app, root.value, socket.value).populate(root.value, (response) => {
-        console.log("Response>", response)
-        response.items.map((item) => {
-            products.value[item.name] = {
-                'cost': item.price,
-                'desc': item.desc,
-                'currency': new Intl.NumberFormat(navigator.language, {style: "currency", currency: item.currency}).format(item.price),
-                'id': item.price_id
-            }
+    if (!authenticated.value||!active.value) return
+    if (!products.value.length) {
+        log.info ('Loading product catalogue from Stripe')
+        subsStore.init(app, root.value, socket.value).populate(root.value, (response) => {
+            response.items.map((item) => {
+                products.value[item.name] = {
+                    'cost': item.price,
+                    'desc': item.desc,
+                    'currency': new Intl.NumberFormat(navigator.language, {style: "currency", currency: item.currency}).format(item.price),
+                    'id': item.price_id
+                }
+            })
+            setTimeout(() => {
+                clrLoading()
+            }, 500)
         })
-    })
-    routeStore.init(app, root.value, socket.value).populate(root.value, (response) => {
-        selected.value = response.data[0].plan
-        current_prod.value = response.data[0].plan
-    })
+        routeStore.init(app, root.value, socket.value).populate(root.value, () => {
+            selected.value = current_prod.value = route_data.value.get(route_ids.value[0]).plan
+        })
+    } else {
+        clrLoading()
+    }
 }
 
 function setLoading () { loading.value = true }
@@ -406,10 +467,15 @@ ul.products li:not(:nth-child(4)) {
     margin-bottom: 1em;
     font-size: 1.1em;
     color: teal;
+
 }
 #checkout {
     height: auto;
     overflow-y: auto;
+    background-color: white;
+    border-radius: 8px;
+    padding-top: 1em;
+    padding-bottom: 1em;
 }
 .card-text {
     font-size: 1.2em;
@@ -437,12 +503,28 @@ ul.products li:not(:nth-child(4)) {
     border-top-left-radius:8px;
     border-top-right-radius:8px;
 }
+.spin-wrapper {
+    height: 100%;
+    width:100%;
+}
+.spinner {
+    text-align: center;
+    position: absolute;
+    top: 45%;
+    min-height: 300px;
+    width:95%;
+}
+.loading {
+    font-weight: 800;
+    visibility: visible;
+}
 </style>
 
 <style>
-.subscription-dialog .p-card-body {
-    height: 100%;
+.subscription-dialog .p-dialog-header, .subscription-dialog .p-dialog-content {
+    background-color: #e5e5e5;
 }
+
 .subscription-dialog .p-card-caption {
     text-align: center;
 }
@@ -451,7 +533,6 @@ ul.products li:not(:nth-child(4)) {
 }
 .subscription-dialog {
     margin-bottom: 0.4em;
-    background-color: #f2f2f2!important;
 }
 .subscription-dialog .p-card .p-card-content {
     padding: 0;
@@ -461,51 +542,3 @@ ul.products li:not(:nth-child(4)) {
 }
 
 </style>
-
-
-
-
-
-<!-- <div v-if="show_cancellation">
-                <Card>
-                    <template #title style="color:red">Cancel your Subscription</template>
-                    <template #content>
-                        <p class="m-0 card-text">
-                            Cancelling your subscription will prevent the system from renewing your subscription
-                            at the end of the current billing cycle. In this instance, no more charges will be taken from
-                            your card and in <b>{{ route.days }}</b> days you will revert to the free tier service.
-                        </p>
-                        <p class="m-0 card-text">
-                            Are you sure you wish to cancel?
-                        </p><br/>
-                        <Button 
-                            class="p-button" 
-                            severity="danger" 
-                            icon="pi pi-times-circle" 
-                            label="&nbsp;Cancel Subscription&nbsp;&nbsp; "
-                            @click="onClickCancel">
-                        </Button>&nbsp;&nbsp;
-                        <Button 
-                            class="p-button" 
-                            severity="info" 
-                            icon="pi pi-arrow-circle-left" 
-                            label="&nbsp;Abort&nbsp;&nbsp; "
-                            @click="onClickAbort">
-                        </Button>
-                    </template>
-                </Card>
-            </div>
-            <div v-if="show_upgrade">
-                Upgrade Options!
-            </div>  -->
-
-
-                    <!-- <Button 
-                        class="p-button" 
-                        severity="help" 
-                        icon="pi pi-sparkles" 
-                        label="&nbsp;Change&nbsp;&nbsp; "
-                        @click="onClickSubscribe"
-                        :disabled="!change_prod"
-                        v-if="!checkout">
-                    </Button> -->
