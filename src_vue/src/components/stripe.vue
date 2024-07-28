@@ -60,12 +60,15 @@
                                 <div v-if="selected == 'free'" style="height:100%">
                                     <div class="dialog-content">
                                         <p class="m-0 card-text" >
-                                            <div style="margin-bottom: 0.5em">
-                                                This subscription can be upgraded or downgraded at any time. When a subscription is changed
-                                                any fees or refunds are included pro-rata in the next card transaction.
-                                            </div>
-                                            <div>
-                                                Downgrades are available no sooner than 24h after an upgrade.
+                                            <ul style="margin-top:1em">
+                                                <li>Upgrade at any time</li>
+                                                <li>The minimum term for a subscription is 1 Month</li>
+                                                <li>Upgrade fees are included pro-rata in your next bill</li>
+                                            </ul>
+                                            <div style="margin-top: 1em;font-size: 0.9em">
+                                                If you downgrade to the free service, subscriptions run to the end of the current billing
+                                                cycle and don't renew. Any other downgrades are available after 24h and refunds are included 
+                                                in your next bill on a pro-rata basis.
                                             </div>
                                         </p>
                                         <div style="flex:1"></div>
