@@ -487,7 +487,7 @@ class mm_static_Public {
 
 	private function regenerate_sitemap () {
 	
-		require_once plugin_dir_path( __FILE__ ) . '../vendor/autoload.php';
+		require_once plugin_dir_path( __FILE__ ) . '../../vendor/autoload.php';
 		global $wp_filesystem;
 
 		$datdir = sys_get_temp_dir() . '/' . uniqid('mms_data_');

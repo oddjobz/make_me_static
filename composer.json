@@ -1,0 +1,21 @@
+{
+    "name": "madpenguin/make_me_static",
+    "description": "Wordpress plugin to facilitate the generation of static copies of a WP site",
+    "type": "project",
+    "require": {
+        "icamys/php-sitemap-generator": "^5.0"
+    },
+    "license": "GPL2",
+    "autoload": {
+        "psr-4": {
+            "Madpenguin\\MakeMeStatic\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Gareth Bult",
+            "email": "gareth@madpenguin.uk"
+        }
+    ],
+    "minimum-stability": "stable"
+}
