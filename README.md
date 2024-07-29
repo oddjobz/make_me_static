@@ -7,6 +7,31 @@ This external service does all the heavy lifting.
 
 ![](images/wizard.jpeg)
 
+### What do we rely on?
+
+This plugin employs a third party service to scan a Wordpress site and store the resulting
+static copy in a Git repository. The service retains a database of metadata regarding the site 
+which includes file names, sizes and modification times, together with any credentials that have 
+been added when creating a profile. Sensitive information is encrypted at rest. The external service is responsible for scanning and processing activities in order to minimise the loading on the Wordpress server.
+
+The plugin references the third party service via a directory service which is accessed at;
+https://mms-directory-1.madpenguin.uk
+This in turn will refererence the crawler allocated to the site in question. Crawler URLs typically take the form https://mms-crawler-(n).madpenguin.uk. For on-premesis crawlers the 
+url will also include a customer-id prefix, but will always end in ".madpenguin.uk".
+
+#### Useful links relating to the 3rd party service
+
+* [The service product page](https://madpenguin.uk/make-me-static/)
+* [Getting Started](https://madpenguin.uk/make-me-static-getting-started/)
+* [Terms and Conditions of Service](https://madpenguin.uk/mms-terms-and-conditions/)
+* [Privacy Policy](https://madpenguin.uk/privacy-policy/)
+* [Support Forum](https://support.madpenguin.uk/)
+
+Note that this in an integrated solution, the 3rd party service is owned and operated by the 
+plugin authors on a combination of cloud hosted and on premesis equipment.
+
+![](images/makemestatic.png)
+
 ### How Does it work?
 
 The Wordpress site is scanned by the MMS service under direction from the Wordpress plugin. This

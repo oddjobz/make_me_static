@@ -46,11 +46,15 @@ class mm_static_Admin {
 	 * @since    1.0.32
 	 * @access   private
 	 * @var      string    $directory	The default directory address
+	 * 
+	 * This plugin uses an external service hosted by Mad Penguin Consulting Ltd.
+	 * Details are contained in the README.md file in this repository. In this instance
+	 * $directory should point to Mad Penguin's directory server, which should always
+	 * be of the form "https://mms-directory-(n).madpenguin.uk/"
+	 *  
 	 */
 
-
 	private $directory = 'https://mms-directory-1.madpenguin.uk/';
-
 
 	/**
 	 * Initialize the class and set its properties.
