@@ -63,7 +63,7 @@
             </p>
         </div>
         <div class="main-display" v-show="state==0">
-            <div id="mms-crawler" :style="app_style" />
+            <div id="make-me-static-crawler" :style="app_style" />
         </div>
     </section>
 </template>
@@ -231,7 +231,7 @@ function loadCrawler () {
     //  Set the spinner in motion
     //
     state.value = 1
-    if (!window.mms_crawlers) window.mms_crawlers = new Map()
+    if (!window.make_me_static_crawlers) window.make_me_static_crawlers = new Map()
     //
     //  If crawler_app is set, we already have a crawler UI on the screen
     //  so we need to clean it up.
@@ -244,7 +244,7 @@ function loadCrawler () {
         //
         //  Remove the SCRIPT tag
         //
-        script = document.getElementById('mms-crawler-app')
+        script = document.getElementById('make-me-static-crawler-app')
         if (script != null) script.parentNode.removeChild( script )
     }
     //
@@ -269,7 +269,7 @@ function loadCrawler () {
         //  Each crawler populates "mms_crawlers[url]" with a factory that can be used
         //  to generate new instances of the UI.
         //
-        const factory = window.mms_crawlers.get(MMS_API_Settings.crawler)
+        const factory = window.make_me_static_crawlers.get(MMS_API_Settings.crawler)
         //
         //  Create a new instance of our VUE.js application
         //
@@ -277,7 +277,7 @@ function loadCrawler () {
         //
         //  Mount it inside the current window
         //
-        crawler_app.value.mount('#mms-crawler')
+        crawler_app.value.mount('#make-me-static-crawler')
         have_app.value = true;
         //
         //  Cleat the spinner

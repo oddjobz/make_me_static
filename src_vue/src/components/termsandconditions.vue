@@ -41,7 +41,7 @@ function doConfirm () {
         header: `Terms and Conditions`,
         links: [
             {link: "https://madpenguin.uk/terms-of-service/", html: "MadPenguin's Terms of Service"},
-            {link: "https://live.madpenguin.uk/mms-terms-and-conditions/", html: "Make Me Static Terms of Use"}
+            {link: "https://madpenguin.uk/mms-terms-and-conditions/", html: "Make Me Static Terms of Use"}
         ],
         icon: "pi pi-refresh",
         acceptLabel: "Accept",

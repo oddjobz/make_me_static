@@ -6,8 +6,8 @@
  * @link       https://madpenguin.uk
  * @since      0.9.0
  *
- * @package    mm_static
- * @subpackage mm_static/admin
+ * @package    make_me_static
+ * @subpackage make_me_static/admin
  */
 
 /**
@@ -16,11 +16,11 @@
  * Defines the plugin name, version, and two examples hooks for how to
  * enqueue the admin-specific stylesheet and JavaScript.
  *
- * @package    mm_static
- * @subpackage mm_static/admin
+ * @package    make_me_static
+ * @subpackage make_me_static/admin
  * @author     Gareth Bult <gareth@madpenguin.uk>
  */
-class mm_static_Admin {
+class make_me_static_Admin {
 
 	/**
 	 * The ID of this plugin.
@@ -68,35 +68,36 @@ class mm_static_Admin {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 		//
-		add_action( 'admin_menu'        		, 'mms_setup_menu', 9999);
-		add_action( 'save_post'         		, 'mms_flag_change', 11, 0 );
-		add_action( 'deleted_post'         		, 'mms_flag_change', 11, 0 );
-		add_action( 'add_category'   			, 'mms_flag_change', 11, 0 );
-		add_action( 'delete_category'  			, 'mms_flag_change', 11, 0 );
-		add_action( 'comment_post'   			, 'mms_flag_change', 11, 0 );
-		add_action( 'edit_comment'   			, 'mms_flag_change', 11, 0 );
-		add_action( 'wp_delete_comment'			, 'mms_flag_change', 11, 0 );
-		add_action( 'upgrader_process_complete'	, 'mms_flag_change', 11, 0 );
+		add_action( 'admin_menu'        		, 'make_me_static_setup_menu', 9999);
+		add_action( 'save_post'         		, 'make_me_static_flag_change', 11, 0 );
+		add_action( 'deleted_post'         		, 'make_me_static_flag_change', 11, 0 );
+		add_action( 'add_category'   			, 'make_me_static_flag_change', 11, 0 );
+		add_action( 'delete_category'  			, 'make_me_static_flag_change', 11, 0 );
+		add_action( 'comment_post'   			, 'make_me_static_flag_change', 11, 0 );
+		add_action( 'edit_comment'   			, 'make_me_static_flag_change', 11, 0 );
+		add_action( 'wp_delete_comment'			, 'make_me_static_flag_change', 11, 0 );
+		add_action( 'upgrader_process_complete'	, 'make_me_static_flag_change', 11, 0 );
 
-		function mms_upgrade_complete() {
-			require_once plugin_dir_path( __FILE__ ) . 'includes/mm-static-activator.php';
-			mm_static_Activator::upgrade();	
-			update_option ('mm-static-change', new DateTime());
+		function make_me_static_upgrade_complete() {
+			require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-activator.php';
+			make_me_static_Activator::upgrade();	
+			update_option ('make-me-static-change', new DateTime());
 		}
 
-		function mms_flag_change() {
-			update_option ('mm-static-change', new DateTime());
+		function make_me_static_flag_change() {
+			update_option ('make-me-static-change', new DateTime());
 		}
 
-		function mms_setup_menu(){
-			add_menu_page( 'Make Me Static', 'MM Static', 'manage_options', 'make-me-static', 'mm_static_init' );
-			if (!get_option ('mm-static-uuid', false)) {
-				add_option ('mm-static-uuid', uniqid('mms_'));
+		function make_me_static_setup_menu(){
+			add_menu_page( 'Make Me Static', 'MakeMeStatic', 'manage_options', 'make-me-static', 'make_me_static_init' );
+			if (!get_option ('make-me-static-uuid', false)) {
+				add_option ('make-me-static-uuid', uniqid('mms_'));
 			}
 		}
-		function mm_static_init() {
-			echo "<div class='mm-static-main'><div id='mms-directory'></div></div>";
+		function make_me_static_init() {
+			print_r("<div class='mm-static-main'><div id='mms-directory'></div></div>");
 		}
+
 	}
 
 	/**
@@ -107,8 +108,8 @@ class mm_static_Admin {
 	public function enqueue_styles() {
 		if (get_current_screen()->base == 'toplevel_page_make-me-static') {
 			wp_enqueue_style( $this->plugin_name.'-fonts', "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap", array(), $this->version, 'all' );
-			wp_enqueue_style( $this->plugin_name.'-admin', plugin_dir_url( __FILE__ ) . 'css/mm-static-admin.css', array(), $this->version, 'all' );
-			wp_enqueue_style( $this->plugin_name.'-theme', plugin_dir_url( __FILE__ ) . 'css/mm-static-theme.css', array(), $this->version, 'all' );		
+			wp_enqueue_style( $this->plugin_name.'-admin', plugin_dir_url( __FILE__ ) . 'css/make-me-static-admin.css', array(), $this->version, 'all' );
+			wp_enqueue_style( $this->plugin_name.'-theme', plugin_dir_url( __FILE__ ) . 'css/make-me-static-theme.css', array(), $this->version, 'all' );		
 		}
 	}
 
@@ -132,7 +133,7 @@ class mm_static_Admin {
 				array( 
 					'apiurl' => esc_url_raw( rest_url() ),
 					'nonce' => wp_create_nonce( 'wp_rest' ),
-					'uuid' => get_option ('mm-static-uuid', false),
+					'uuid' => get_option ('make-me-static-uuid', false),
 					'user' => wp_get_current_user()->ID
 				)
 			);

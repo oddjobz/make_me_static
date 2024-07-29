@@ -5,14 +5,14 @@
  *
  * @link       https://madpenguin.uk
  * @since      0.9.0
- * @package    class-mm-static-public
+ * @package    make-me-static-public
  *
  */
 
  require_once (__DIR__ . '/class-make-me-static-sitemapgenerator.php');
 
 
-class mm_static_Public {
+class make_me_static_Public {
 
 	/**
 	 * The ID of this plugin.
@@ -87,8 +87,8 @@ class mm_static_Public {
 			$gen = $this->get_generator ($tmps[$key], 100);
 			$sections[$key]['gen'] = $gen;
 			$sections[$key]['date'] = (new DateTime())->setTimestamp(0);
-			$gen->setSitemapFileName('mm_sitemap_'.$key.'.xml');
-			$gen->setSitemapIndexFileName('mm_sitemap_'.$key.'_index.xml');
+			$gen->setSitemapFileName('make_me_static_sitemap_'.$key.'.xml');
+			$gen->setSitemapIndexFileName('make_me_static_sitemap_'.$key.'_index.xml');
 		}
 		foreach ($paths as $path) {
 			$this->traverse($sections, $index, $path, $recurse);
@@ -101,7 +101,7 @@ class mm_static_Public {
 			} catch (Exception $e) {
 				continue;
 			}
-			$name = 'mm_sitemap_'.$key;
+			$name = 'make_me_static_sitemap_'.$key;
 			$name = $wp_filesystem->exists($tmps[$key].'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 			$index->addURL($name, $entry['date'], 'never', $gen->urlCount(), []);
 			$this->flush($tmps[$key], $datdir);
@@ -130,13 +130,13 @@ class mm_static_Public {
 			if (str_starts_with($name, '.')||($name=='cache')) continue;
 			if ($atts['type'] == 'd' && $recurse) {
 				$sub = $path . '/' . $name;
-				if (defined('MMS_FOLDER_BLIST') && in_array($sub, MMS_FOLDER_BLIST)) continue;
+				if (defined('MAKE_ME_STATIC_FOLDER_BLIST') && in_array($sub, MAKE_ME_STATIC_FOLDER_BLIST)) continue;
 				if (in_array($sub, ['plugins'])) continue;
 				$this->traverse($sections, $index, $sub, $recurse);
 				continue;
 			}
 			$ext = pathinfo($name, PATHINFO_EXTENSION);
-			if (str_starts_with($name, 'mm_') && $ext == 'xml') continue;
+			if (str_starts_with($name, 'make_me_static_') && $ext == 'xml') continue;
 			if (!$ext||in_array($ext, $ign)) continue;
 			if (in_array($ext, $imgs)) $ext = 'img';
 			if (!(array_key_exists($ext, $sections))) {
@@ -172,8 +172,8 @@ class mm_static_Public {
 		global $wp_filesystem;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 		$generator = $this->get_generator ( $tmpdir, 100 );
-		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
-		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
+		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
+		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0); 
 		foreach ($items as $item) {
 			$date = get_post_datetime($item, 'modified', 'gmt');
@@ -187,7 +187,7 @@ class mm_static_Public {
 		$generator->flush();
 		try {
 			$generator->finalize();			
-			$name = 'mm_sitemap_' . $type;
+			$name = 'make_me_static_sitemap_' . $type;
 			$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 			$index->addURL($name, DateTime::createFromImmutable($newest_date), 'never', $generator->urlCount(), []);
 		} catch (Exception $e) {
@@ -215,8 +215,8 @@ class mm_static_Public {
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 
 		$generator = $this->get_generator ( $tmpdir, $page_size );
-		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
-		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
+		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
+		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
 		$site_url = get_site_url ();
 		while (true) {
@@ -257,7 +257,7 @@ class mm_static_Public {
 		$generator->flush();
 		try {
 			$generator->finalize();			
-			$name = 'mm_sitemap_' . $type;
+			$name = 'make_me_static_sitemap_' . $type;
 			$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 			$index->addURL($name, DateTime::createFromImmutable($newest_date), 'never', $generator->urlCount(), []);
 		} catch (Exception $e) {
@@ -267,8 +267,8 @@ class mm_static_Public {
 
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 		$generator = $this->get_generator ( $tmpdir, 50000 );
-		$generator->setSitemapFileName("mm_sitemap_archives.xml");
-		$generator->setSitemapIndexFileName("mm_sitemap_archives_index.xml");
+		$generator->setSitemapFileName("make_me_static_sitemap_archives.xml");
+		$generator->setSitemapIndexFileName("make_me_static_sitemap_archives_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
 		foreach ($archives as $year => $months) {
 			foreach ($months as $month => $date) {
@@ -279,7 +279,7 @@ class mm_static_Public {
 		}
 		$generator->flush();
 		$generator->finalize();
-		$name = 'mm_sitemap_archives';
+		$name = 'make_me_static_sitemap_archives';
 		$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 		$index->addURL($name, DateTime::createFromImmutable($newest_date), 'never', $generator->urlCount(), []);
 		$this->flush($tmpdir, $datdir);		
@@ -340,13 +340,13 @@ class mm_static_Public {
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 		$generator = $this->get_generator ( $tmpdir, $page_size );
-		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
-		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
+		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
+		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = $this->include_subcategories ($datdir, $index, $generator, '', '/category');
 		$generator->flush();
 		try {
 			$generator->finalize();			
-			$name = 'mm_sitemap_' . $type;
+			$name = 'make_me_static_sitemap_' . $type;
 			$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 			$index->addURL($name, $newest_date, 'never', $generator->urlCount(), []);
 		} catch (Exception $e) {
@@ -371,8 +371,8 @@ class mm_static_Public {
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 		$generator = $this->get_generator ( $tmpdir, $page_size );
-		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
-		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
+		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
+		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
 		$root = '/tag';
 		foreach ( get_tags() as $tag) {
@@ -394,7 +394,7 @@ class mm_static_Public {
 		$generator->flush();
 		try {
 			$generator->finalize();			
-			$name = 'mm_sitemap_' . $type;
+			$name = 'make_me_static_sitemap_' . $type;
 			$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 			$index->addURL($name, $newest_date, 'never', $generator->urlCount(), []);
 		} catch (Exception $e) {
@@ -421,8 +421,8 @@ class mm_static_Public {
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 		$generator = $this->get_generator ( $tmpdir, $page_size );
-		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
-		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
+		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
+		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
 		$root = '/author';
 		foreach ( $users as $user ) {
@@ -446,7 +446,7 @@ class mm_static_Public {
 		$generator->flush();
 		try {
 			$generator->finalize();			
-			$name = 'mm_sitemap_' . $type;
+			$name = 'make_me_static_sitemap_' . $type;
 			$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 			$index->addURL($name, $newest_date, 'never', $generator->urlCount(), []);
 		} catch (Exception $e) {
@@ -471,7 +471,7 @@ class mm_static_Public {
 		wp_mkdir_p( $datdir );
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 		$index = $this->get_generator ( $tmpdir, 100 );
-		$index->setSitemapFileName("mm_sitemap.xml");
+		$index->setSitemapFileName("make_me_static_sitemap.xml");
 		$items = get_pages(array('post_type' => 'page', 'post_status' => 'publish'));
 		$this->include_items($items, $datdir, $index, 'pages');
 		$this->include_posts($datdir, $index, 'posts');
@@ -479,8 +479,8 @@ class mm_static_Public {
 		$this->include_tags($datdir, $index);
 		$this->include_authors($datdir, $index);
 		$folders = [];
-		if (defined('MMS_FOLDER_WLIST'))
-			$folders = array_merge($folders, MMS_FOLDER_WLIST);
+		if (defined('MAKE_ME_STATIC_FOLDER_WLIST'))
+			$folders = array_merge($folders, MAKE_ME_STATIC_FOLDER_WLIST);
 		$this->traverse_root($index, $datdir, $folders);
 		$index->flush();
 		$index->finalize();
@@ -492,7 +492,7 @@ class mm_static_Public {
 	}
 
 	/**
-	* Return a mm_sitemap(n).xml if available
+	* Return a mame_me_static_sitemap(n).xml if available
 	*
 	* @since               0.9.0
 	* @param               string    $name             Sitemap file name
@@ -508,11 +508,11 @@ class mm_static_Public {
 		header('Content-Type: application/xml');
 		$path1 = plugin_dir_path( __FILE__ ) . 'data/' . str_replace('-','.',$name);
 		$path2 = plugin_dir_path( __FILE__ ) . 'data/sitemap-index.xml';
-		$last_change = get_option ('mm-static-change', (new DateTime())->setTimestamp(1));
-		$last_sitemap = get_option ('mm-static-last', (new DateTime())->setTimestamp(0));
+		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1));
+		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0));
 		if (($last_change > $last_sitemap)||(!$wp_filesystem->exists($path1)&&!$wp_filesystem->exists($path2))) {
 			$this->regenerate_sitemap();
-			update_option ('mm-static-last', $last_change);
+			update_option ('make-me-static-last', $last_change);
 		}
 		if ($wp_filesystem->exists($path1)) {
 			include $path1;
@@ -586,11 +586,11 @@ class mm_static_Public {
 	 * 
 	 */
 
-	public function mm_static_template_redirect () {
+	public function make_me_static_template_redirect () {
 		global $wp_query;
 		$name = $wp_query->query_vars['name'];
 
-		if (preg_match('/^mm_sitemap_comments-xml$/', $name))   return $this->return_comments($name);		
-		if (preg_match('/^mm_sitemap(.*)-xml$/', $name)) 		return $this->return_sitemap($name);
+		if (preg_match('/^make_me_static_sitemap_comments-xml$/', $name))   return $this->return_comments($name);		
+		if (preg_match('/^make_me_static_sitemap(.*)-xml$/', $name)) 		return $this->return_sitemap($name);
 	}
 }

@@ -5,11 +5,11 @@
  * This Class defines our JSON API
  *
  * @since      1.0.2
- * @package    class-mms-api
+ * @package    make-me-static-api
  *
  */
 
-class mms_api {
+class make_me_static_api {
 
     /**
      * 
@@ -64,7 +64,7 @@ class mms_api {
 		//
 		$user_id = wp_get_current_user()->ID;
 		$session_token = wp_get_session_token();
-		$meta = get_user_meta ( $user_id , 'mms_host_ids' );
+		$meta = get_user_meta ( $user_id , 'make_me_static_host_ids' );
 		if ($meta)
 			$meta = $meta[0];
 		else
@@ -80,11 +80,11 @@ class mms_api {
 		//	Update the stamp and save ...
 		//
 		$meta[$host_id] = $session_token;
-		update_user_meta ( $user_id, 'mms_host_ids', $meta );
+		update_user_meta ( $user_id, 'make_me_static_host_ids', $meta );
 	}
 
 	private function is_host_id_valid ( $user_id, $host_id ) {
-		$meta = get_user_meta ( $user_id , 'mms_host_ids' );
+		$meta = get_user_meta ( $user_id , 'make_me_static_host_ids' );
 		if ($meta)
 			$meta = $meta[0];
 		else
@@ -131,7 +131,7 @@ class mms_api {
 		//
 		//	Make sure this request is for us ...
 		//
-		if (get_option ('mm-static-uuid', false) != $site)
+		if (get_option ('make-me-static-uuid', false) != $site)
 			return new WP_REST_Response( array( 'message' => 'Request was for the wrong domain: '.$site ), 403);
 		//
 		//	Make sure host_id is available and update it's stamp if it already exists
@@ -160,7 +160,7 @@ class mms_api {
 		//
 		//	Make sure this request is for us ...
 		//
-		if (get_option ('mm-static-uuid', false) != $site)
+		if (get_option ('make-me-static-uuid', false) != $site)
 			return new WP_REST_Response( array( 'message' => 'Request was for the wrong domain: '.$site ), 403);
 		//
 		//	Check the metadata to see if there is a valid session for this user/host_id
@@ -179,8 +179,8 @@ class mms_api {
 	 */
 
 	public function api_notify_changes () {
-		$last_change = get_option ('mm-static-change', (new DateTime())->setTimestamp(1))->format('c');
-		$last_sitemap = get_option ('mm-static-last', (new DateTime())->setTimestamp(0))->format('c');
+		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1))->format('c');
+		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0))->format('c');
 		return array([
 			'last_change' => $last_change,
 			'last_sitemap' => $last_sitemap
