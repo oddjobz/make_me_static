@@ -3,7 +3,7 @@
         'name' => 'madpenguin/make_me_static',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '67c82d6f6d799964e70bc86a675d4daa18b7f921',
+        'reference' => 'a890bec1ece90b4cb45ce1757ba4ddab138d16d3',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'madpenguin/make_me_static' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '67c82d6f6d799964e70bc86a675d4daa18b7f921',
+            'reference' => 'a890bec1ece90b4cb45ce1757ba4ddab138d16d3',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

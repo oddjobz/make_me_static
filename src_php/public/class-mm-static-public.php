@@ -9,6 +9,9 @@
  *
  */
 
+ require_once (__DIR__ . '/class-make-me-static-sitemapgenerator.php');
+
+
 class mm_static_Public {
 
 	/**
@@ -39,9 +42,28 @@ class mm_static_Public {
 	 * @param      string    $plugin_name       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
+
 	public function __construct( $plugin_name, $version ) {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+	}
+
+	/**
+	 * Wrap the sitemap generator so we can access urlCount
+	 *
+	 * @since		1.0.59
+	 * @param      	string    $config		Our generator config block
+	 * @access   	private
+	 * 
+	 */
+
+	 private function get_generator ( $tmpdir, $page_size ) {
+		wp_mkdir_p( $tmpdir );	
+		$config = new make_me_static_sitemapconfig ($tmpdir);
+		$gen = new make_me_static_sitemapgenerator ($config );
+		$gen->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
+		$gen->setMaxURLsPerSitemap($page_size);
+		return $gen;
 	}
 
 	/**
@@ -62,15 +84,9 @@ class mm_static_Public {
 		$tmps = [];
 		foreach (['css', 'js', 'img'] as $key) {
 			$tmps[$key] = sys_get_temp_dir() . '/' . uniqid('mms_');
-			wp_mkdir_p( $tmps[$key] );	
-			$config = new \Icamys\SitemapGenerator\Config();
-			$config->setSaveDirectory($tmps[$key]);
-			$config->setBaseURL(get_site_url ());
-			$gen = new \Icamys\SitemapGenerator\SitemapGenerator($config);
+			$gen = $this->get_generator ($tmps[$key], 100);
 			$sections[$key]['gen'] = $gen;
 			$sections[$key]['date'] = (new DateTime())->setTimestamp(0);
-			$gen->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
-			$gen->setMaxURLsPerSitemap(100);
 			$gen->setSitemapFileName('mm_sitemap_'.$key.'.xml');
 			$gen->setSitemapIndexFileName('mm_sitemap_'.$key.'_index.xml');
 		}
@@ -155,15 +171,9 @@ class mm_static_Public {
 	private function include_items ( $items, $datdir, $index, $type, $debug=false) {
 		global $wp_filesystem;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		wp_mkdir_p( $tmpdir );	
-		$config = new \Icamys\SitemapGenerator\Config();
-		$config->setSaveDirectory($tmpdir);
-		$config->setBaseURL(get_site_url ());
-		$generator = new \Icamys\SitemapGenerator\SitemapGenerator($config);				
+		$generator = $this->get_generator ( $tmpdir, 100 );
 		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
-		$generator->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
-		$generator->setMaxURLsPerSitemap(100);
 		$newest_date = (new DateTime())->setTimestamp(0); 
 		foreach ($items as $item) {
 			$date = get_post_datetime($item, 'modified', 'gmt');
@@ -203,15 +213,10 @@ class mm_static_Public {
 		$offset = 0;
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		wp_mkdir_p( $tmpdir );	
-		$config = new \Icamys\SitemapGenerator\Config();
-		$config->setSaveDirectory($tmpdir);
-		$config->setBaseURL(get_site_url ());
-		$generator = new \Icamys\SitemapGenerator\SitemapGenerator($config);				
+
+		$generator = $this->get_generator ( $tmpdir, $page_size );
 		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
-		$generator->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
-		$generator->setMaxURLsPerSitemap($page_size);
 		$newest_date = (new DateTime())->setTimestamp(0);
 		$site_url = get_site_url ();
 		while (true) {
@@ -238,7 +243,6 @@ class mm_static_Public {
 						$archives[$year][$month] = $pub;
 					}
 				}
-
 				$when = DateTime::createFromImmutable($date);
 				$full_permalink = get_permalink($item);
 				if (str_starts_with($full_permalink, $site_url)) {
@@ -262,15 +266,9 @@ class mm_static_Public {
 		$this->flush($tmpdir, $datdir);		
 
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		wp_mkdir_p( $tmpdir );	
-		$config = new \Icamys\SitemapGenerator\Config();
-		$config->setSaveDirectory($tmpdir);
-		$config->setBaseURL(get_site_url ());
-		$generator = new \Icamys\SitemapGenerator\SitemapGenerator($config);				
+		$generator = $this->get_generator ( $tmpdir, 50000 );
 		$generator->setSitemapFileName("mm_sitemap_archives.xml");
 		$generator->setSitemapIndexFileName("mm_sitemap_archives_index.xml");
-		$generator->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
-		$generator->setMaxURLsPerSitemap(50000);
 		$newest_date = (new DateTime())->setTimestamp(0);
 		foreach ($archives as $year => $months) {
 			foreach ($months as $month => $date) {
@@ -341,15 +339,9 @@ class mm_static_Public {
 		$type = 'categories';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		wp_mkdir_p( $tmpdir );	
-		$config = new \Icamys\SitemapGenerator\Config();
-		$config->setSaveDirectory($tmpdir);
-		$config->setBaseURL(get_site_url ());
-		$generator = new \Icamys\SitemapGenerator\SitemapGenerator($config);				
+		$generator = $this->get_generator ( $tmpdir, $page_size );
 		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
-		$generator->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
-		$generator->setMaxURLsPerSitemap($page_size);
 		$newest_date = $this->include_subcategories ($datdir, $index, $generator, '', '/category');
 		$generator->flush();
 		try {
@@ -378,15 +370,9 @@ class mm_static_Public {
 		$type = 'tags';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		wp_mkdir_p( $tmpdir );	
-		$config = new \Icamys\SitemapGenerator\Config();
-		$config->setSaveDirectory($tmpdir);
-		$config->setBaseURL(get_site_url ());
-		$generator = new \Icamys\SitemapGenerator\SitemapGenerator($config);				
+		$generator = $this->get_generator ( $tmpdir, $page_size );
 		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
-		$generator->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
-		$generator->setMaxURLsPerSitemap($page_size);
 		$newest_date = (new DateTime())->setTimestamp(0);
 		$root = '/tag';
 		foreach ( get_tags() as $tag) {
@@ -429,22 +415,14 @@ class mm_static_Public {
 
 	private function include_authors ($datdir, $index, $debug=false) {
 		global $wp_filesystem;
-
 		$users = get_users();
 		if ( count( $users ) === 0 ) return 0;
-
 		$type = 'authors';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		wp_mkdir_p( $tmpdir );	
-		$config = new \Icamys\SitemapGenerator\Config();
-		$config->setSaveDirectory($tmpdir);
-		$config->setBaseURL(get_site_url ());
-		$generator = new \Icamys\SitemapGenerator\SitemapGenerator($config);				
+		$generator = $this->get_generator ( $tmpdir, $page_size );
 		$generator->setSitemapFileName("mm_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("mm_sitemap_" . $type ."_index.xml");
-		$generator->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
-		$generator->setMaxURLsPerSitemap($page_size);
 		$newest_date = (new DateTime())->setTimestamp(0);
 		$root = '/author';
 		foreach ( $users as $user ) {
@@ -457,7 +435,6 @@ class mm_static_Public {
 			if ($query->post_count) {
 				$post = $query->posts[0];
 				$date = get_post_datetime($post, 'modified', 'gmt');
-				// $path = $root.'/'.$user->user_login.'/';
 				$url = get_author_posts_url($user->ID);
 				$parsed = wp_parse_url($url);
 				$path = $parsed['path'];
@@ -487,20 +464,14 @@ class mm_static_Public {
 
 	private function regenerate_sitemap () {
 	
-		require_once plugin_dir_path( __FILE__ ) . '../../vendor/autoload.php';
+		require_once plugin_dir_path( __FILE__ ) . '../vendor/autoload.php';
 		global $wp_filesystem;
 
 		$datdir = sys_get_temp_dir() . '/' . uniqid('mms_data_');
 		wp_mkdir_p( $datdir );
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		wp_mkdir_p( $tmpdir );
-		$config = new \Icamys\SitemapGenerator\Config();
-		$config->setSaveDirectory($tmpdir);
-		$config->setBaseURL(get_site_url ());
-		$index = new \Icamys\SitemapGenerator\SitemapGenerator($config);
+		$index = $this->get_generator ( $tmpdir, 100 );
 		$index->setSitemapFileName("mm_sitemap.xml");
-		$index->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
-		$index->setMaxURLsPerSitemap(100);
 		$items = get_pages(array('post_type' => 'page', 'post_status' => 'publish'));
 		$this->include_items($items, $datdir, $index, 'pages');
 		$this->include_posts($datdir, $index, 'posts');

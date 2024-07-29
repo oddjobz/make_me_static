@@ -45,10 +45,12 @@ build_php:
 	@cp -ra ${PHPSRC}/public ${BUILD}
 	@cp -ra ${PHPSRC}/languages ${BUILD}
 	@cp -ra ${PHPSRC}/includes ${BUILD}
-	@mkdir -p ${BUILD}/vendor/icamys/php-sitemap-generator/
-	@cp -ra ${PHPSRC}/vendor/autoload.php ${BUILD}/vendor/
-	@cp -ra ${PHPSRC}/vendor/composer ${BUILD}/vendor/
-	@cp -ra ${PHPSRC}/vendor/icamys/php-sitemap-generator/ ${BUILD}/vendor/icamys
+	@cp -ra vendor ${BUILD}
+
+# @mkdir -p ${BUILD}/vendor/icamys/php-sitemap-generator/
+# @cp -ra ${PHPSRC}/vendor/autoload.php ${BUILD}/vendor/
+# @cp -ra ${PHPSRC}/vendor/composer ${BUILD}/vendor/
+# @cp -ra ${PHPSRC}/vendor/icamys/php-sitemap-generator/ ${BUILD}/vendor/icamys
 
 build_vue:
 #
