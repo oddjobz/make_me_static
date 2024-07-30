@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  * 
  */
 
- require_once plugins_url('../vendor/autoload.php', __FILE__);
+require_once plugin_dir_path( __FILE__ ) . '../vendor/autoload.php';
 
 use Icamys\SitemapGenerator\Config;
 

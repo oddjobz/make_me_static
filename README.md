@@ -14,8 +14,11 @@ static copy in a Git repository. The service retains a database of metadata rega
 which includes file names, sizes and modification times, together with any credentials that have 
 been added when creating a profile. Sensitive information is encrypted at rest. The external service is responsible for scanning and processing activities in order to minimise the loading on the Wordpress server.
 
-The plugin references the third party service via a directory service which is accessed at;
-https://mms-directory-1.madpenguin.uk
+The plugin references the third party service via directory services which are accessed at;
+* https://mms-directory-1.madpenguin.uk
+* https://mms-directory-2.madpenguin.uk
+* https://mms-directory-3.madpenguin.uk
+
 This in turn will refererence the crawler allocated to the site in question. Crawler URLs typically take the form https://mms-crawler-(n).madpenguin.uk. For on-premesis crawlers the 
 url will also include a customer-id prefix, but will always end in ".madpenguin.uk".
 

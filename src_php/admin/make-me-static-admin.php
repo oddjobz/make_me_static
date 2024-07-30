@@ -2,6 +2,8 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+require_once plugin_dir_path( __FILE__ ) . '../includes/make-me-static-activator.php';
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -56,7 +58,7 @@ class make_me_static_Admin {
 	 *  
 	 */
 
-	private $directory = 'https://mms-directory-dev.madpenguin.uk/';
+	private $directory = 'https://mms-directory-2.madpenguin.uk/';
 
 	/**
 	 * Initialize the class and set its properties.
@@ -87,7 +89,6 @@ class make_me_static_Admin {
 		 */
 
 		function make_me_static_upgrade_complete() {
-			require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-activator.php';
 			make_me_static_Activator::upgrade();	
 			update_option ('make-me-static-change', new DateTime());
 		}

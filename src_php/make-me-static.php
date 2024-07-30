@@ -3,10 +3,24 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 /**
+ * The core plugin class that is used to define internationalization,
+ * admin-specific hooks, and public-facing site hooks.
+ */
+require plugin_dir_path( __FILE__ ) . 'includes/make-me-static.php';
+
+/** 
+ * Activator and de-activator hooks from the standard plugin template
+ * 
+ */
+
+require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-activator.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-deactivator.php';
+
+/**
  * Currently plugin version.
  */
 
-define( 'MAKE_ME_STATIC_VERSION', '1.0.82' );
+define( 'MAKE_ME_STATIC_VERSION', '1.0.92' );
 
 /**
  * Plugin bootstrap file
@@ -19,7 +33,7 @@ define( 'MAKE_ME_STATIC_VERSION', '1.0.82' );
  * Plugin Name:       	Make Me Static
  * Plugin URI:        	https://madpenguin.uk/make-me-static
  * Description:       	Provide admin resources for the Make Me Static Crawler
- * Version:           	1.0.82
+ * Version:           	1.0.92
  * Requires at least: 	6.5
  * Requires PHP:      	7.0
  * Author:            	Mad Penguin Consulting Ltd
@@ -45,7 +59,6 @@ if ( ! defined( 'WPINC' ) ) {
  * This action is documented in includes/class-plugin-name-activator.php
  */
 function make_me_static_activate() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-activator.php';
 	make_me_static_Activator::activate();
 }
 
@@ -54,18 +67,11 @@ function make_me_static_activate() {
  * This action is documented in includes/class-plugin-name-deactivator.php
  */
 function make_me_static_deactivate() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-deactivator.php';
 	make_me_static_Deactivator::deactivate();
 }
 
 register_activation_hook( __FILE__, 'make_me_static_activate' );
 register_deactivation_hook( __FILE__, 'make_me_static_deactivate' );
-
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing site hooks.
- */
-require plugin_dir_path( __FILE__ ) . 'includes/make-me-static.php';
 
 /**
  * Begins execution of the plugin.
