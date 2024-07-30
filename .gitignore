@@ -4,3 +4,4 @@ dist
 .attic
 .vite
 node_modules
+vendor
