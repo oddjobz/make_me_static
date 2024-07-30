@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * The public-facing functionality of the plugin.
  *
@@ -7,9 +9,21 @@
  * @since      0.9.0
  * @package    make-me-static-public
  *
+ * So the main focus of this module is to produce a customised version of an XML sitemap
+ * for use exclusively by our crawler. This sitemap contains a pretty stylesheet and views
+ * quite happily in a browser, however we have commandeered the "priority" field to store
+ * the number of "sub" items in nested sitemaps. This way we can determine the number of
+ * items that exist in the entire site from the sitemap indexes.
+ * 
+ * The Icamys SitemapGenerator is probably overkill in terms of what we need, and it's a
+ * little painful in terms of customisation (see class-make-me-static-sitemapgenerator.php)
+ * however it seems like a solid way to get started. We probably need to code our own 
+ * lightweight generator once out PHP gets good enough.
+ * 
  */
 
- require_once (__DIR__ . '/class-make-me-static-sitemapgenerator.php');
+require_once plugins_url('class-make-me-static-sitemapgenerator.php', __FILE__);
+require_once plugins_url('wp-admin/includes/file.php', __FILE__);
 
 
 class make_me_static_Public {
@@ -40,7 +54,7 @@ class make_me_static_Public {
 	 *
 	 * @since    1.0.0
 	 * @param      string    $plugin_name       The name of the plugin.
-	 * @param      string    $version    The version of this plugin.
+	 * @param      string    $version    		The version of this plugin.
 	 */
 
 	public function __construct( $plugin_name, $version ) {
@@ -52,8 +66,10 @@ class make_me_static_Public {
 	 * Wrap the sitemap generator so we can access urlCount
 	 *
 	 * @since		1.0.59
-	 * @param      	string    $config		Our generator config block
 	 * @access   	private
+	 * @param      	string    $tmpdir		Our temporary directory
+	 * @param      	int    	  $page_size	The maximum number of items to allow per page
+	 * @return   	object    An instance of an overridden Icamys/SitemapGenerator
 	 * 
 	 */
 
@@ -70,11 +86,11 @@ class make_me_static_Public {
 	 * Traverse the plugins filesystem (non recursive)
 	 *
 	 * @since		0.9.0
-	 * @param      	string    $generator		A sitemapgenerator instance
-	 * @param     	string    $path			The path to traverse
-	 * @param      	string    $type			The type of file to look at
-	 * @param      	string    $debug			Whether to turn debugging on
 	 * @access   	private
+	 * @param       object    	$index		A sitemapgenerator instance
+	 * @param     	string    	$datadir	The path for our results
+	 * @param      	array    	$paths		The paths to traverse
+	 * @param      	bool    	$recurse	Whether to recurse the path
 	 * 
 	 */
 
@@ -112,11 +128,11 @@ class make_me_static_Public {
 	 * Traverse the plugins filesystem
 	 *
 	 * @since		0.9.0
-	 * @param      	string    $generator		A sitemapgenerator instance
-	 * @param     	string    $path			The path to traverse
-	 * @param      	string    $type			The type of file to look at
-	 * @param      	string    $debug			Whether to turn debugging on
 	 * @access   	private
+	 * @param      	array     			$sections	Array of generators (one per indexed type)
+	 * @param       SitemapGenerator    $generator	A sitemapgenerator instance
+	 * @param     	string    			$path		The path to traverse
+	 * @param      	bool      			$recurse	Whether to recurse the path
 	 * 
 	 */
 
@@ -161,6 +177,7 @@ class make_me_static_Public {
 	 *
 	 * @since		0.9.0
 	 * @param		array	  $items		Array of WP_Post items to add to sitemap
+	 * @param		string	  $datadir		The folder for our results
 	 * @param		object	  $config		A sitemap config object
 	 * @param      	object    $index		A sitemapgenerator instance
 	 * @param		string	  $type		    Type of objects in this section
@@ -168,7 +185,7 @@ class make_me_static_Public {
 	 * 
 	 */
 
-	private function include_items ( $items, $datdir, $index, $type, $debug=false) {
+	private function include_items ( $items, $datdir, $index, $type) {
 		global $wp_filesystem;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 		$generator = $this->get_generator ( $tmpdir, 100 );
@@ -200,14 +217,14 @@ class make_me_static_Public {
 	 * Include posts in the sitemap
 	 *
 	 * @since		0.9.0
-	 * @param		object	  $config		A sitemap config object
-	 * @param      	object    $index		A sitemapgenerator instance
-	 * @param		string	  $type		    Type of objects in this section
 	 * @access   	private
+	 * @param		string	  $datadir		The path for our results
+	 * @param      	object    $index		A sitemapgenerator instance
+	 * @param		object	  $type			The resource type we're dealing with
 	 * 
 	 */
 
-	private function include_posts ($datdir, $index, $type, $debug=false) {
+	private function include_posts ($datdir, $index, $type) {
 		global $wp_filesystem;
 		$archives = [];
 		$offset = 0;
@@ -289,14 +306,16 @@ class make_me_static_Public {
 	 * Recurse through all categories
 	 *
 	 * @since		0.9.0
-	 * @param		object	  $datdir		Final destination
-	 * @param      	object    $index		A sitemapgenerator instance
- 	 * @param      	object    $category		Root cat to start from
+	 * @param		string	  $datdir		Our output path
+	 * @param      	object    $index		A sitemapgenerator instance for the index
+	 * @param		object	  $generator	Our sitemap generator for the page
+ 	 * @param      	string    $category		The category to include
+	 * @param      	string    $root			Root cat to start from
 	 * @access   	private
 	 * 
 	 */
 
-	private function include_subcategories ($datdir, $index, $generator, $category, $root, $debug=false) {
+	private function include_subcategories ($datdir, $index, $generator, $category, $root) {
 		$args = array
 		(
 			'parent' => $category ? $category->cat_ID : 0,
@@ -328,13 +347,13 @@ class make_me_static_Public {
 	 * Include categories in the sitemap
 	 *
 	 * @since		0.9.0
-	 * @param		object	  $datdir		Final destination
+	 * @param		string	  $datdir		Final destination
 	 * @param      	object    $index		A sitemapgenerator instance
 	 * @access   	private
 	 * 
 	 */
 
-	private function include_categories ($datdir, $index, $debug=false) {
+	private function include_categories ($datdir, $index) {
 		global $wp_filesystem;
 		$type = 'categories';
 		$page_size = 100;
@@ -359,13 +378,13 @@ class make_me_static_Public {
 	 * Include tags in the sitemap
 	 *
 	 * @since		0.9.0
-	 * @param		object	  $datdir		Final destination
+	 * @param		string	  $datdir		Final destination
 	 * @param      	object    $index		A sitemapgenerator instance
 	 * @access   	private
 	 * 
 	 */
 
-	private function include_tags ($datdir, $index, $debug=false) {
+	private function include_tags ($datdir, $index) {
 		global $wp_filesystem;
 		$type = 'tags';
 		$page_size = 100;
@@ -407,13 +426,13 @@ class make_me_static_Public {
 	 * Include authors in the sitemap
 	 *
 	 * @since		0.9.0
-	 * @param		object	  $datdir		Final destination
+	 * @param		string	  $datdir		Final destination
 	 * @param      	object    $index		A sitemapgenerator instance
 	 * @access   	private
 	 * 
 	 */
 
-	private function include_authors ($datdir, $index, $debug=false) {
+	private function include_authors ($datdir, $index) {
 		global $wp_filesystem;
 		$users = get_users();
 		if ( count( $users ) === 0 ) return 0;
@@ -463,10 +482,7 @@ class make_me_static_Public {
 	 */
 
 	private function regenerate_sitemap () {
-	
-		require_once plugin_dir_path( __FILE__ ) . '../vendor/autoload.php';
 		global $wp_filesystem;
-
 		$datdir = sys_get_temp_dir() . '/' . uniqid('mms_data_');
 		wp_mkdir_p( $datdir );
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
@@ -494,14 +510,13 @@ class make_me_static_Public {
 	/**
 	* Return a mame_me_static_sitemap(n).xml if available
 	*
-	* @since               0.9.0
-	* @param               string    $name             Sitemap file name
-	* @access      private
+	* @since       0.9.0
+	* @access      private	
+	* @param       string    $name             Sitemap file name
 	* 
 	*/
 
 	private function return_sitemap ($name) {
-		require_once ABSPATH . 'wp-admin/includes/file.php';
 		if (!WP_Filesystem()) { die; }
 		global $wp_filesystem;
 		status_header (200);
@@ -527,9 +542,9 @@ class make_me_static_Public {
 	}
 
 	/**
-	* Return a recent comments
+	* Simple Comments RSS feed
 	*
-	* @since               0.9.1
+	* @since       0.9.1
 	* @access      private
 	* 
 	*/
@@ -564,9 +579,9 @@ class make_me_static_Public {
 	 * Flush temporary gen files to final
 	 *
 	 * @since		0.9.0
+	 * @access   	private
 	 * @param		string	  $tmpdir		    Source folder
 	 * @param		string	  $datdir		    Target folder
-	 * @access   	private
 	 * 
 	 */
 	

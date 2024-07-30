@@ -1,10 +1,12 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * Currently plugin version.
  */
 
-define( 'MAKE_ME_STATIC_VERSION', '1.0.77' );
+define( 'MAKE_ME_STATIC_VERSION', '1.0.82' );
 
 /**
  * Plugin bootstrap file
@@ -17,7 +19,7 @@ define( 'MAKE_ME_STATIC_VERSION', '1.0.77' );
  * Plugin Name:       	Make Me Static
  * Plugin URI:        	https://madpenguin.uk/make-me-static
  * Description:       	Provide admin resources for the Make Me Static Crawler
- * Version:           	1.0.77
+ * Version:           	1.0.82
  * Requires at least: 	6.5
  * Requires PHP:      	7.0
  * Author:            	Mad Penguin Consulting Ltd

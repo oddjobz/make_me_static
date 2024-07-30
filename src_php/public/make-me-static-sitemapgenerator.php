@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * This isn an override for the SitemapGenerator class from Icamys. The SitemapGenerator
  * class is probably overkill for our needs but it was a relatively easy way to get going.
@@ -15,7 +17,7 @@
  * 
  */
 
-require_once plugin_dir_path( __FILE__ ) . '../vendor/autoload.php';
+ require_once plugins_url('../vendor/autoload.php', __FILE__);
 
 use Icamys\SitemapGenerator\Config;
 
@@ -25,6 +27,14 @@ use Icamys\SitemapGenerator\Config;
  */
 
 class make_me_static_sitemapconfig extends Config {
+
+	/**
+	 * Initialize the class and set its properties.
+	 *
+	 * @since    1.0.59
+	 * @access   private
+	 * @param    string    $tmpdir		Where we're going to store our work files
+	 */
 
     public function __construct ( $tmpdir ) {
         parent::__construct();
@@ -44,9 +54,35 @@ use Icamys\SitemapGenerator\SitemapGenerator;
 
 class make_me_static_SitemapGenerator extends SitemapGenerator {
 
+	/**
+	 * A Reflection instance so we can access totalURLCount
+	 *
+	 * @since    1.0.59
+	 * @access   private
+	 * @var      object    $reflect
+	 */
+
 	private $reflect;
+
+	/**
+	 * The maximum URL length to allow
+	 *
+	 * @since    1.0.59
+	 * @access   private
+	 * @var      int		$MAX_URL_LEN
+	 */
+
 	private $MAX_URL_LEN = 2048;
-    private array $validChangefreqValues = [
+
+	/**
+	 * Valid frequencies to allow
+	 *
+	 * @since    1.0.59
+	 * @access   private
+	 * @var      int		$validChangefreqValues
+	 */
+
+	private array $validChangefreqValues = [
         'always',
         'hourly',
         'daily',
@@ -56,14 +92,16 @@ class make_me_static_SitemapGenerator extends SitemapGenerator {
         'never',
     ];
 
-    /**
-     * 
-     *  urlCount - we need access to totalURLCount and unfortunately it's defined
-     *             as private, which isn't helpful. Not overly happy with having
-     *             to use reflect, but this seems to be the only way to get access
-     *             to a private variable.
-     * 
-     * @return $totalURLCount
+	/**
+	 * We need access to totalURLCount and unfortunately it's defined
+     * as private, which isn't helpful. Not overly happy with having
+     * to use reflect, but this seems to be the only way to get access
+     * to a private variable.
+	 *
+	 * @since    1.0.59
+	 * @access   private
+	 * @param    string    $tmpdir			Where we're going to store our work files
+     * @return 			   $totalURLCount	Number of URL's in the sitemap
      * 
      */
 
@@ -81,17 +119,21 @@ class make_me_static_SitemapGenerator extends SitemapGenerator {
     
     /**
     * 
-    *   validate - We're not actually generating a sitemap for public consumption so
-    *              we don't need to adhere to the standard validation routine. In this 
-    *              instance we're using the priority as a count of the number of items
-    *              in the sub-sitemap, so the limit of priority >=0 <=1 is irrelevant.
+	*	Validate the config settings
+	*
+    *   We're not actually generating a sitemap for public consumption so
+    *   we don't need to adhere to the standard validation routine. In this 
+    *   instance we're using the priority as a count of the number of items
+    *   in the sub-sitemap, so the limit of priority >=0 <=1 is irrelevant.
     *
-	* @param string $path
-	* @param string|null $changeFrequency
-	* @param float|null $priority
-	* @param array $extensions
-	* @return void
-	* @throws InvalidArgumentException
+	* @since	1.0.59
+	* @access   private
+	* @param 	string 		$path
+	* @param 	string|null $changeFrequency
+	* @param 	float|null 	$priority
+	* @param 	array 		$extensions
+	* @return 	void
+	* @throws 	InvalidArgumentException
 	*/
 
    public function validate(

@@ -334,7 +334,8 @@ div.mm-static-main span.status-locked  {
     padding-bottom: 0;
 }
 #update-nag, .update-nag {
-    visibility: hidden;
+    margin-top: 1em;
+    margin-left: 1em;
 }
 body {
    height: 100%;

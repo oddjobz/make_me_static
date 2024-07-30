@@ -172,7 +172,7 @@ watch (route, (curr, prev) => {
 //
 function registerWithWordpress () {
     if (loaded.value||!auth1.value) return
-    const url = new URL(apiurl.value + 'mms/v1/register_host');
+    const url = new URL(apiurl.value + 'make_me_static/v1/register_host');
     url.searchParams.set('host_id', connection.hostid);
     url.searchParams.set('site', window.MMS_API_Settings.uuid);
     //
@@ -207,6 +207,7 @@ function registerWithWordpress () {
 function loadRoute () {
     let store = routeStore.init(app, root.value, socket.value)
     store.populate(root.value, (response) => {
+        log.warn("Response>", response)
         if (!response || !response.ok || !route_ids.value.length) {
             log.error ("failed to populate routeStore", response)
             unauthorized.value = true
@@ -259,6 +260,10 @@ function loadCrawler () {
     //  in DEV mode, otherwise it will be a minified asset.
     //
     const url = new URL(route.value.url);
+
+    log.error("Settings>", window.MMS_API_Settings)
+
+
     url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
     //
     //  This is our (very simple but effective) loader

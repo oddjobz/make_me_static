@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -54,7 +56,7 @@ class make_me_static_Admin {
 	 *  
 	 */
 
-	private $directory = 'https://mms-directory-1.madpenguin.uk/';
+	private $directory = 'https://mms-directory-dev.madpenguin.uk/';
 
 	/**
 	 * Initialize the class and set its properties.
@@ -76,7 +78,13 @@ class make_me_static_Admin {
 		add_action( 'comment_post'   			, 'make_me_static_flag_change', 11, 0 );
 		add_action( 'edit_comment'   			, 'make_me_static_flag_change', 11, 0 );
 		add_action( 'wp_delete_comment'			, 'make_me_static_flag_change', 11, 0 );
-		add_action( 'upgrader_process_complete'	, 'make_me_static_flag_change', 11, 0 );
+		add_action( 'upgrader_process_complete'	, 'make_me_static_upgrade_complete', 11, 0 );
+
+		/**
+		 * Register that we've upgraded the plugin
+		 *
+		 * @since      1.0.58
+		 */
 
 		function make_me_static_upgrade_complete() {
 			require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-activator.php';
@@ -84,9 +92,21 @@ class make_me_static_Admin {
 			update_option ('make-me-static-change', new DateTime());
 		}
 
+		/**
+		 * Register that the site is now potentially out of sync
+		 *
+		 * @since      1.0.58
+		 */
+
 		function make_me_static_flag_change() {
 			update_option ('make-me-static-change', new DateTime());
 		}
+
+		/**
+		 * Register a new menu optoin for the Admin page
+		 *
+		 * @since      1.0.58
+		 */
 
 		function make_me_static_setup_menu(){
 			add_menu_page( 'Make Me Static', 'MakeMeStatic', 'manage_options', 'make-me-static', 'make_me_static_init' );
@@ -94,8 +114,15 @@ class make_me_static_Admin {
 				add_option ('make-me-static-uuid', uniqid('mms_'));
 			}
 		}
+
+		/**
+		 * Output the place-holder for the admin page template
+		 *
+		 * @since      1.0.58
+		 */
+
 		function make_me_static_init() {
-			print_r("<div class='mm-static-main'><div id='mms-directory'></div></div>");
+			print_r("<div class='mm-static-main'><div id='make-me-static-directory'></div></div>");
 		}
 
 	}
@@ -114,7 +141,8 @@ class make_me_static_Admin {
 	}
 
 	/**
-	 * Register the JavaScript for the admin area.
+	 * Register the JavaScript for the admin area, only load our resources if we are
+	 * on our own admin page so we can't interfere with any other pages.
 	 *
 	 * @since    0.9.0
 	 */
