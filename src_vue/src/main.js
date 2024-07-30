@@ -24,4 +24,4 @@ orbit_component_mmsdir(app, router, menu);
 app.use(router)
 app.use(PrimeVue)
 app.use(ConfirmationService);
-app.mount('#mms-directory')
+app.mount('#make-me-static-directory')

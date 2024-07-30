@@ -23,6 +23,9 @@ class OrbitLogger {
     warn (...args) {
         console.info ('%c%s %c%s', c_time, this.prefix(), c_warn, 'WARNING', ...args, this.postfix())
     }
+    warning (...args) {
+        console.info ('%c%s %c%s', c_time, this.prefix(), c_warn, 'WARNING', ...args, this.postfix())
+    }
     error (...args) {
         console.info ('%c%s %c%s', c_time, this.prefix(), c_error, 'ERROR', ...args, this.postfix())
     }

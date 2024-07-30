@@ -1,7 +1,6 @@
 <?php
 
-global $mms_db_version;
-$mms_db_version = '1.0';
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 /**
  * Fired during plugin activation
@@ -13,7 +12,7 @@ $mms_db_version = '1.0';
  * @author     Gareth Bult <gareth@madpenguin.uk>
  */
 
- class mm_static_Activator {
+ class make_me_static_Activator {
 
 	/**
 	 * Activate the Plugin.

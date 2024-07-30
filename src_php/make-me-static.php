@@ -1,10 +1,26 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
+/**
+ * The core plugin class that is used to define internationalization,
+ * admin-specific hooks, and public-facing site hooks.
+ */
+require plugin_dir_path( __FILE__ ) . 'includes/make-me-static.php';
+
+/** 
+ * Activator and de-activator hooks from the standard plugin template
+ * 
+ */
+
+require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-activator.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-deactivator.php';
+
 /**
  * Currently plugin version.
  */
 
-define( 'MMS_VERSION', '1.0.58' );
+define( 'MAKE_ME_STATIC_VERSION', '1.0.92' );
 
 /**
  * Plugin bootstrap file
@@ -17,7 +33,7 @@ define( 'MMS_VERSION', '1.0.58' );
  * Plugin Name:       	Make Me Static
  * Plugin URI:        	https://madpenguin.uk/make-me-static
  * Description:       	Provide admin resources for the Make Me Static Crawler
- * Version:           	1.0.58
+ * Version:           	1.0.92
  * Requires at least: 	6.5
  * Requires PHP:      	7.0
  * Author:            	Mad Penguin Consulting Ltd
@@ -42,28 +58,20 @@ if ( ! defined( 'WPINC' ) ) {
  * The code that runs during plugin activation.
  * This action is documented in includes/class-plugin-name-activator.php
  */
-function activate_plugin_name() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/mm-static-activator.php';
-	mm_static_Activator::activate();
+function make_me_static_activate() {
+	make_me_static_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
  * This action is documented in includes/class-plugin-name-deactivator.php
  */
-function deactivate_plugin_name() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/mm-static-deactivator.php';
-	mm_static_Deactivator::deactivate();
+function make_me_static_deactivate() {
+	make_me_static_Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_plugin_name' );
-register_deactivation_hook( __FILE__, 'deactivate_plugin_name' );
-
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing site hooks.
- */
-require plugin_dir_path( __FILE__ ) . 'includes/class-mm-static.php';
+register_activation_hook( __FILE__, 'make_me_static_activate' );
+register_deactivation_hook( __FILE__, 'make_me_static_deactivate' );
 
 /**
  * Begins execution of the plugin.
@@ -74,11 +82,11 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-mm-static.php';
  *
  * @since    0.9.0
  */
-function run_mm_static() {
+function make_me_static_run () {
 
-	$plugin = new MM_Static();
+	$plugin = new Make_Me_Static_Main();
 	$plugin->run();
 
 }
-run_mm_static();
+make_me_static_run ();
 

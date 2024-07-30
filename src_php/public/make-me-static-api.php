@@ -1,15 +1,17 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * 
  * This Class defines our JSON API
  *
  * @since      1.0.2
- * @package    class-mms-api
+ * @package    make-me-static-api
  *
  */
 
-class mms_api {
+class make_me_static_api {
 
     /**
      * 
@@ -18,9 +20,43 @@ class mms_api {
      * 
      */
 
-	private $mount_point = 'mms/v1';
+	/**
+	 * How we present the API
+	 *
+	 * @since    1.0.2
+	 * @access   private
+	 * @var      string    $mount_point    The base URL for our API
+	 */
+
+	private $mount_point = 'make_me_static/v1';
+
+	/**
+	 * Plugin naming
+	 *
+	 * @since    1.0.2
+	 * @access   private
+	 * @var      string    $plugin_name    The name of our plugin
+	 */
+
 	private $plugin_name;
+
+	/**
+	 * Plugin version
+	 *
+	 * @since    1.0.2
+	 * @access   private
+	 * @var      string    $plugin_name    The version of our plugin
+	 */
+
 	private $version;
+
+	/**
+	 * Initialize the class and set its properties.
+	 *
+	 * @since    1.0.2
+	 * @param      string    $plugin_name       The name of the plugin.
+	 * @param      string    $version   		The version of this plugin.
+	 */
 
     public function __construct( $plugin_name, $version ) {
 		$this->plugin_name = $plugin_name;
@@ -55,6 +91,7 @@ class mms_api {
 	 * 
 	 * @since		1.0.3
 	 * @access   	private
+	 * @param       string    $host_id       The Make_Me_Static host_id
 	 * 
 	 */
 
@@ -64,7 +101,7 @@ class mms_api {
 		//
 		$user_id = wp_get_current_user()->ID;
 		$session_token = wp_get_session_token();
-		$meta = get_user_meta ( $user_id , 'mms_host_ids' );
+		$meta = get_user_meta ( $user_id , 'make_me_static_host_ids' );
 		if ($meta)
 			$meta = $meta[0];
 		else
@@ -80,11 +117,23 @@ class mms_api {
 		//	Update the stamp and save ...
 		//
 		$meta[$host_id] = $session_token;
-		update_user_meta ( $user_id, 'mms_host_ids', $meta );
+		update_user_meta ( $user_id, 'make_me_static_host_ids', $meta );
 	}
 
+	/**
+	 * 
+	 * 	Determine is the host_id has previously been validated for this user_id
+	 * 
+	 * @since		1.0.3
+	 * @access   	private
+	 * @param       string    $user_id       The Wordpress user_id
+	 * @param       string    $host_id       The Make_Me_Static host_id
+	 * @return    	boolean   				 Whether the user/host combination is currently valid
+	 * 
+	 */
+
 	private function is_host_id_valid ( $user_id, $host_id ) {
-		$meta = get_user_meta ( $user_id , 'mms_host_ids' );
+		$meta = get_user_meta ( $user_id , 'make_me_static_host_ids' );
 		if ($meta)
 			$meta = $meta[0];
 		else
@@ -103,7 +152,12 @@ class mms_api {
 
 	/**
 	 * 
-	 * Validate the incoming connection.
+	 * 	Simple callback to check that the current user is an administrator
+	 * 
+	 * @since		1.0.3
+	 * @access   	private
+	 * @param       WP_REST_Request $request  The incoming REQUEST object
+	 * @return    	boolean   				  Whether the current user is allowed to use the API call
 	 * 
 	 */
 
@@ -120,23 +174,25 @@ class mms_api {
 	 *
 	 * @since		1.0.2
 	 * @access   	public
+	 * @param       WP_REST_Request $request  The incoming REQUEST object
+	 * @return    	WP_REST_Response 		  200 if Ok or 403 if unauthorized
 	 * 
 	 */
 
-	public function api_register_host ( $params ) {
+	public function api_register_host ( WP_REST_Request $request ) {
 		//
 		//	Incoming parameters include the site (a uuid) and host_id
 		//
-		$site = sanitize_text_field($params->get_param( 'site' ));
+		$site = sanitize_text_field($request->get_param( 'site' ));
 		//
 		//	Make sure this request is for us ...
 		//
-		if (get_option ('mm-static-uuid', false) != $site)
+		if (get_option ('make-me-static-uuid', false) != $site)
 			return new WP_REST_Response( array( 'message' => 'Request was for the wrong domain: '.$site ), 403);
 		//
 		//	Make sure host_id is available and update it's stamp if it already exists
 		//
-		$this->update_metadata ( sanitize_text_field($params->get_param( 'host_id' )));
+		$this->update_metadata ( sanitize_text_field($request->get_param( 'host_id' )));
 		return new WP_REST_Response( array( 'message' => 'Ok, session registered' ), 200);
 	}
 
@@ -149,23 +205,25 @@ class mms_api {
 	 *
 	 * @since		1.0.0
 	 * @access   	private
+	 * @param       WP_REST_Request $request  The incoming REQUEST object
+	 * @return    	WP_REST_Response 		  200 if Ok or 403 if unauthorized
 	 * 
 	 */
 
-	public function api_validate_host ( $params ) {
+	public function api_validate_host ( WP_REST_Request $request ) {
 		//
 		//	Incoming parameters include the site (a uuid) and host_id and user
 		//
-		$site = sanitize_text_field($params->get_param( 'site' ));
+		$site = sanitize_text_field($request->get_param( 'site' ));
 		//
 		//	Make sure this request is for us ...
 		//
-		if (get_option ('mm-static-uuid', false) != $site)
+		if (get_option ('make-me-static-uuid', false) != $site)
 			return new WP_REST_Response( array( 'message' => 'Request was for the wrong domain: '.$site ), 403);
 		//
 		//	Check the metadata to see if there is a valid session for this user/host_id
 		//
-		if ($this->is_host_id_valid (sanitize_text_field($params->get_param( 'user' )), sanitize_text_field($params->get_param( 'host_id' ))))
+		if ($this->is_host_id_valid (sanitize_text_field($request->get_param( 'user' )), sanitize_text_field($request->get_param( 'host_id' ))))
 			return new WP_REST_Response( array( 'message' => 'Ok, host_id attached to a valid session' ), 200);
 		return new WP_REST_Response( array( 'message' => 'Session invalid or expired' ), 403);
 	}
@@ -175,12 +233,13 @@ class mms_api {
 	 *
 	 * @since		0.9.67
 	 * @access   	private
+	 * @return    	array 		  Date of last change and date of last sitemap update
 	 * 
 	 */
 
 	public function api_notify_changes () {
-		$last_change = get_option ('mm-static-change', (new DateTime())->setTimestamp(1))->format('c');
-		$last_sitemap = get_option ('mm-static-last', (new DateTime())->setTimestamp(0))->format('c');
+		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1))->format('c');
+		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0))->format('c');
 		return array([
 			'last_change' => $last_change,
 			'last_sitemap' => $last_sitemap

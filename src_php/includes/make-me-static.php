@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * The file that defines the core plugin class
  *
@@ -9,8 +11,8 @@
  * @link       https://madpenguin.uk
  * @since      0.9.0
  *
- * @package    mm_static
- * @subpackage mm_static/includes
+ * @package    make_me_static
+ * @subpackage make_me_static/includes
  */
 
 /**
@@ -23,12 +25,12 @@
  * version of the plugin.
  *
  * @since      0.9.0
- * @package    mm_static
- * @subpackage mm_static/includes
+ * @package    make_me_static
+ * @subpackage make_me_static/includes
  * @author     Gareth Bult <gareth@madpenguin.uk>
  */
 
-class MM_Static {
+class Make_Me_Static_Main {
 
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power
@@ -36,7 +38,7 @@ class MM_Static {
 	 *
 	 * @since    0.9.0
 	 * @access   protected
-	 * @var      mm_static_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @var      make_me_static_Loader    $loader    Maintains and registers all hooks for the plugin.
 	 */
 	protected $loader;
 
@@ -67,9 +69,10 @@ class MM_Static {
 	 *
 	 * @since    0.9.0
 	 */
+
 	public function __construct() {
-		if ( defined( 'MMS_VERSION' ) ) {
-			$this->version = MMS_VERSION;
+		if ( defined( 'MAKE_ME_STATIC_VERSION' ) ) {
+			$this->version = MAKE_ME_STATIC_VERSION;
 		} else {
 			$this->version = '0.9.0';
 		}
@@ -97,33 +100,33 @@ class MM_Static {
 	 * @since    0.9.0
 	 * @access   private
 	 */
+
 	private function load_dependencies() {
 
 		/**
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-mm-static-loader.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/make-me-static-loader.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-mm-static-i18n.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/make-me-static-i18n.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-mm-static-admin.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/make-me-static-admin.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-mm-static-public.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/make-me-static-public.php';
 
-		$this->loader = new mm_static_Loader();
-
+		$this->loader = new make_me_static_Loader();
 	}
 
 	/**
@@ -137,7 +140,7 @@ class MM_Static {
 	 */
 	private function set_locale() {
 
-		$plugin_i18n = new mm_static_i18n();
+		$plugin_i18n = new make_me_static_i18n();
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
 
@@ -152,7 +155,7 @@ class MM_Static {
 	 */
 	private function define_admin_hooks() {
 
-		$plugin_admin = new mm_static_Admin( $this->get_plugin_name(), $this->get_version() );
+		$plugin_admin = new make_me_static_Admin( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
@@ -167,11 +170,11 @@ class MM_Static {
 	 */
 	private function define_public_hooks() {
 		
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-mms-api.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/make-me-static-api.php';
 
-		$plugin_public = new mm_static_Public( $this->get_plugin_name(), $this->get_version() );
-		add_action( 'template_redirect',  array($plugin_public, 'mm_static_template_redirect'));
-		add_action( 'rest_api_init', function () { new mms_api ($this->get_plugin_name(), $this->get_version()); });
+		$plugin_public = new make_me_static_Public( $this->get_plugin_name(), $this->get_version() );
+		add_action( 'template_redirect',  array($plugin_public, 'make_me_static_template_redirect'));
+		add_action( 'rest_api_init', function () { new make_me_static_api ($this->get_plugin_name(), $this->get_version()); });
 	}
 
 	/**
@@ -198,7 +201,7 @@ class MM_Static {
 	 * The reference to the class that orchestrates the hooks with the plugin.
 	 *
 	 * @since     0.9.0
-	 * @return    mm_static_Loader    Orchestrates the hooks of the plugin.
+	 * @return    make_me_static_Loader    Orchestrates the hooks of the plugin.
 	 */
 	public function get_loader() {
 		return $this->loader;
