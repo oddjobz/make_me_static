@@ -143,14 +143,12 @@ class make_me_static_SitemapGenerator extends SitemapGenerator {
 	   array    $extensions = []): void
    {
 	   if (!(1 <= mb_strlen($path) && mb_strlen($path) <= $this->MAX_URL_LEN)) {
-		   throw new InvalidArgumentException(
-			   sprintf("The urlPath argument length must be between 1 and %d.", $this->MAX_URL_LEN)
-		   );
+		   $error = sprintf("The urlPath argument length must be between 1 and %d.", $this->MAX_URL_LEN);
+		   throw new InvalidArgumentException(esc_html($error));
 	   }
 	   if ($changeFrequency !== null && !in_array($changeFrequency, $this->validChangefreqValues)) {
-		   throw new InvalidArgumentException(
-			   'The change frequency argument should be one of: %s' . implode(',', $this->validChangefreqValues)
-		   );
+			$error = 'The change frequency argument should be one of: %s' . implode(',', $this->validChangefreqValues);
+		    throw new InvalidArgumentException(esc_html($error));
 	   }
        //
        // We already check this in our code ...
