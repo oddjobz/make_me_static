@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  * 
  */
 
-require_once plugin_dir_path( __FILE__ ) . 'class-make-me-static-sitemapgenerator.php';
+require_once plugin_dir_path( __FILE__ ) . 'make-me-static-sitemapgenerator.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
 
 

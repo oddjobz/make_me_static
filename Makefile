@@ -23,7 +23,7 @@ build_clean:
 #
 #	Clean build location
 #
-	@rm -rf ${BUILD}
+	@rm -rf ${BUILDROOT}
 
 build_base:
 #
@@ -59,6 +59,7 @@ build_zip:
 #
 #	Make the ZIP file
 #
+	@rm -f make-me-static.zip
 	@(cd ${BUILDROOT} && zip -rq make-me-static.zip make-me-static)
 	@echo "Build complete."
 #

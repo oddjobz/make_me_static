@@ -102,7 +102,7 @@ Wordpress so the security footprint of the plugin is tiny.
   * Yes, the license relates to number of scans per day, scan rates, database size etc
 
 * Will it work on any Wordpress site?
-  * In theory yes, although compatibility and interaction with with plugs will vary. The production
+  * In theory yes, although compatibility and interaction with with plugins will vary. The production
     process tries to be be clever when it comes to rewriting URL's for AJAX, forms etc, but given the
     number of potential edge cases this will always be ongoing. (please request support for specific
     plugins if you're having problems. We can't guarantee to add support, but we'll be happy to take
@@ -121,16 +121,17 @@ Wordpress so the security footprint of the plugin is tiny.
     it's pretty quick.
 
 * Looks like the scan rate isn't being applied?!
-  * The scan rate ONLY affects pages, it is assumed static pages will be subject to caching hence
+  * The scan rate ONLY affects pages, it is assumed static assets will be subject to caching hence
     will be scanned as fast as the scanner can go based on the number of cores at it's dispostal.
 
 * The progress bar isn't linear?!
-  * No, it's based on the number of item remaining vs the number scanned. As assets are "discovered",
-    they will be addd to the "pages remaing" total. There is no way of knowing how many assets will
+  * No, it's based on the number of items remaining vs the number scanned. As assets are "discovered",
+    they will be added to the "pages remaining" total. There is no way of knowing how many assets will
     be discovered, so the progress indicator is a "best effort".
 
 * If no changes are detected on the site, will the Git repository see a commit or PR?
-  * No. If it does, then the plugin thinks something changed.
+  * No. If it does, then the plugin thinks something changed. You will be able to see what got updated
+    by looking at the commit / PR on your Git control panel. (or with "git diff")
 
 * The label next to my profile says "Pending", what does that mean?
   * It means the plugin thinks "something" has changed on the site. It watches for changes to posts,
