@@ -32,7 +32,7 @@
                 </div>
             </div>
 
-            <div v-show="!loading">
+            <div v-show="!loading && visible">
                 <ul class="products">
                     <li v-for="(val, key) in products" :key="key" style="flex:1">
                         <div 
@@ -84,23 +84,21 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div v-else style="height:100%">
-                                    <div class="dialog-content">
-                                        <p class="m-0 card-text" style="flex:1">
-                                            <div v-if="!has_autorenew" style="text-align:center;color:red;font-size: 1.1em">
-                                                This service has been cancelled and will revert to a free subscription in <b>{{ days_remaining }}</b> days.
-                                            </div>
-                                        </p>
-                                        <div style="text-align:center" v-if="has_subscription && has_autorenew">
-                                            <Button
-                                                style="width:15em"
-                                                class="p-button" 
-                                                severity="warn" 
-                                                icon="pi pi-credit-card" 
-                                                label="Change Payment Details"
-                                                @click="onClickChangePayment">
-                                            </Button>
+                                <div v-else class="dialog-content">
+                                    <p class="m-0 card-text" style="flex:1">
+                                        <div v-if="!has_autorenew" class="revert">
+                                            This service has been cancelled and will revert to a free subscription in <b>{{ days_remaining }}</b> days.
                                         </div>
+                                    </p>
+                                    <div style="text-align:center" v-if="has_subscription && has_autorenew">
+                                        <Button
+                                            style="width:15em"
+                                            class="p-button" 
+                                            severity="warn" 
+                                            icon="pi pi-credit-card" 
+                                            label="Change Payment Details"
+                                            @click="onClickChangePayment">
+                                        </Button>
                                     </div>
                                 </div>
                             </template>
@@ -112,8 +110,14 @@
                                 <template #header>
                                     <img alt="setup wizard" :src="wizard_image" class="wizard">
                                 </template>
-                                <template #title>Change your subscription to <span class="caption-class">{{ new_plan }}</span></template>
-                                <template #content>
+
+                                <template #title v-if="!has_autorenew">
+                                    Your subscription is in the process of reverting to <span class="caption-class">FREE</span>
+                                </template>
+                                <template #title v-else>
+                                    Change your subscription to <span class="caption-class">{{ new_plan }}</span>
+                                </template>
+                                <template #content v-if="has_autorenew || (selected != 'free')">
                                     <div class="dialog-content">
                                         <p class="m-0 card-text">
                                             You are currently subscribed to the <b>{{ current_plan }}</b> plan which is billed at <b>{{ current_price }}</b>
@@ -150,7 +154,7 @@
 </template>
 
 <script setup>
-import { defineComponent, ref, watch, computed, inject, onMounted } from 'vue';
+import { defineComponent, ref, watch, computed, inject, onMounted, nextTick } from 'vue';
 import { defineStore } from 'pinia';
 import { OrbitComponentMixin, useLogger } from '@/../node_modules/orbit-component-base';
 import Button from 'primevue/button';
@@ -162,15 +166,12 @@ import { useConfirm } from "primevue/useconfirm";
 import { useSubsStore } from '@/stores/subsStore.js';
 import { useRouteStore } from '@/stores/routeStore.js';
 import { useRoute, useRouter } from 'vue-router';
+import pkg from '../../package.json';
 //
 //  VUE Router
 //
-const vroute        = useRoute()
-const vrouter       = useRouter()
-//
-//
-import pkg from '../../package.json';
-//
+const vroute            = useRoute()
+const vrouter           = useRouter()
 const confirm           = useConfirm();
 const log               = useLogger()
 const plugin            = inject('$orbitPlugin')
@@ -181,7 +182,6 @@ const routeStore        = useRouteStore()
 const active            = computed(() => socket.value.connected)
 const authenticated     = computed(() => connection.authenticated)
 const visible           = ref(false)
-// const visible           = computed(() => subsStore.items.length>0)
 const route_data        = computed(() => routeStore.data)
 const route_ids         = computed(() => routeStore.ids(root.value))
 const root              = computed(() => opt.router  ? opt.router.currentRoute.value.meta.root : '')
@@ -198,7 +198,7 @@ const show_upgrade      = ref(false)
 const loading           = ref(true)
 const error             = ref(null)
 const route             = computed(() => route_data.value.get(route_ids.value[0]))
-const changed           = computed(() => current_prod.value != selected.value)
+const changed           = computed(() => current_prod.value && selected.value ? current_prod.value != selected.value : false)
 const new_plan          = computed(() => selected.value)
 const new_price         = computed(() => selected.value in products.value ? products.value[selected.value].currency : '')
 const current_plan      = computed(() => route.value ? route.value.plan : '')
@@ -208,7 +208,7 @@ const subscription      = computed(() => route.value && route.value.sub? route.v
 const has_subscription  = computed(() => route.value && route.value.sub ? true : false)
 const days_remaining    = computed(() => {
     if (!route.value) return 0
-    return route.value.days - parseInt((new Date() - new Date(route.value.when * 1000))/1000/60/60/24) - 1
+    return route.value.days - parseInt((new Date() - new Date(route.value.since * 1000))/1000/60/60/24)
 })
 const wizard_image = computed(() => pkg.parameters.host + '/wizard.jpeg')
 
@@ -254,23 +254,25 @@ watch (current_plan, (value) => {
     selected.value = value
 })
 watch (socket, () => {
-    console.log("SOCKET CHANGED!")
     loadProducts()
 })
 watch (authenticated, () => {
-    console.log("SOCKET CHANGED!")
     loadProducts()
 })
 
 function onHide () {
     visible.value = false
-    window.dispatchEvent(new CustomEvent('MMS_CHANGE_PATH', {detail: '/'}))
+    nextTick(() => {
+        formReset ()
+        window.dispatchEvent(new CustomEvent('MMS_CHANGE_PATH', {detail: '/'}))
+    })
 }
 
 function onLoadModule () {
-    log.info ('Load Module here!')
     if (authenticated.value && active.value) loadProducts()
-    visible.value = true
+    nextTick(() => {
+        visible.value = true
+    })
 }
 
 function loadProducts () {
@@ -302,9 +304,9 @@ function setLoading () { loading.value = true }
 function clrLoading () { loading.value = false }
 
 function onClickChange () {
-    let message = '<div style="text-align:center">'+
-                        'This will change your subscription to <b>' + new_plan.value.toUpperCase() + '</b> billed at <b>'+ new_price.value + '</b> /month<br/>' +
-                        '<br/>Are you sure you wish to continue?'+
+    let message = '<div style="padding-left: 3em;padding-right:3em;max-width:500px">'+
+                        'This will change your subscription to <b>' + new_plan.value.toUpperCase() + '</b> billed at <b>'+ new_price.value + '</b> per month. ' +
+                        'Are you sure you wish to continue?'+
                     '</div>'
     confirm.require({
         group: 'templating',
@@ -366,9 +368,11 @@ async function onClickChangePayment () {
 }
 
 function formReset () {
-    checkout.value.unmount( '#checkout')
-    checkout.value.destroy()
-    checkout.value = null
+    if (checkout.value) {
+        checkout.value.unmount( '#checkout')
+        checkout.value.destroy()
+        checkout.value = null
+    }
     // if (change_prod.value) onClickSubscribe()
 }
 
@@ -468,7 +472,7 @@ ul.products li:not(:nth-child(4)) {
 }
 .product-description {
     margin-bottom: 1em;
-    font-size: 1.1em;
+    font-size: 1.0em;
     color: teal;
 
 }
@@ -489,6 +493,8 @@ ul.products li:not(:nth-child(4)) {
 } 
 .dialog-body {
     height: 28em;
+    display:flex;
+    flex-direction: column;
 }
 .dialog-content {
     display: flex;
@@ -521,6 +527,12 @@ ul.products li:not(:nth-child(4)) {
     font-weight: 800;
     visibility: visible;
 }
+.revert {
+    margin-top: 2em;
+    text-align: center;
+    color:rgb(206, 32, 76);
+    font-size: 1.1em;
+}
 </style>
 
 <style>
@@ -532,7 +544,15 @@ ul.products li:not(:nth-child(4)) {
     text-align: center;
 }
 .subscription-dialog .p-card-content {
-    height: 100%;
+    flex:1;
+}
+.subscription-dialog .p-card-body {
+    display:flex;
+    flex-direction: column;
+    flex:1;
+}
+.subscription-dialog .p-card-body .p-card-body {
+    height:100%;
 }
 .subscription-dialog {
     margin-bottom: 0.4em;
@@ -543,5 +563,7 @@ ul.products li:not(:nth-child(4)) {
 .subscription-dialog .p-card-title {
     line-height: 2em;
 }
-
+.subscription-dialog .p-card-body .p-card-content {
+    height: 100%
+}
 </style>
