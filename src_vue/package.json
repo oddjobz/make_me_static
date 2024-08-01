@@ -1,7 +1,7 @@
 {
   "name": "mms_directory",
   "description": "Make Me Static Directory Service",
-  "version": "1.0.58",
+  "version": "1.0.92",
   "private": true,
   "scripts": {
     "dev": "vite --force",
@@ -34,6 +34,6 @@
     "vuejs3-logger": "1.0.0"
   },
   "parameters": {
-    "host": "https://mms-directory-dev.madpenguin.uk"
+    "host": "https://mms-directory-2.madpenguin.uk"
   }
 }

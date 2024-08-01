@@ -31,4 +31,4 @@ app.use(router)
 // }, 10000)
 app.use(PrimeVue)
 app.use(ConfirmationService);
-app.mount('#mms-directory')
+app.mount('#make-me-static-directory')

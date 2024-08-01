@@ -1,13 +1,15 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * Register all actions and filters for the plugin
  *
  * @link       https://madpenguin.uk
  * @since      0.9.0
  *
- * @package    mm_static
- * @subpackage mm_static/includes
+ * @package    make_me_static
+ * @subpackage make_me_static/includes
  */
 
 /**
@@ -17,11 +19,11 @@
  * the plugin, and register them with the WordPress API. Call the
  * run function to execute the list of actions and filters.
  *
- * @package    mm_static
- * @subpackage mm_static/includes
+ * @package    make_me_static
+ * @subpackage make_me_static/includes
  * @author     Gareth Bult <gareth@madpenguin.uk>
  */
-class mm_static_Loader {
+class make_me_static_Loader {
 
 	/**
 	 * The array of actions registered with WordPress.

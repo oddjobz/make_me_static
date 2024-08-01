@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * Define the internationalization functionality
  *
@@ -9,8 +11,8 @@
  * @link       https://madpenguin.uk
  * @since      0.9.0
  *
- * @package    mm_static
- * @subpackage mm_static/includes
+ * @package    make_me_static
+ * @subpackage make_me_static/includes
  */
 
 /**
@@ -20,11 +22,11 @@
  * so that it is ready for translation.
  *
  * @since      0.9.0
- * @package    mm_static
- * @subpackage mm_static/includes
+ * @package    make_me_static
+ * @subpackage make_me_static/includes
  * @author     Gareth Bult <gareth@madpenguin.uk>
  */
-class mm_static_i18n {
+class make_me_static_i18n {
 
 
 	/**
@@ -35,7 +37,7 @@ class mm_static_i18n {
 	public function load_plugin_textdomain() {
 
 		load_plugin_textdomain(
-			'mm-static',
+			'make-me-static',
 			false,
 			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
 		);

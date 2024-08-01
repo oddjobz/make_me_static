@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /**
  * Fired during plugin deactivation
  *
@@ -7,7 +9,7 @@
  * @since      0.9.0
  *
  * @package    Gareth Bult
- * @subpackage mm-static/includes
+ * @subpackage make-me-static/includes
  */
 
 /**
@@ -16,11 +18,11 @@
  * This class defines all code necessary to run during the plugin's deactivation.
  *
  * @since      0.9.0
- * @package    mm-static
- * @subpackage mm-static/includes
+ * @package    make-me-static
+ * @subpackage make-me-static/includes
  * @author     Gareth Bult <gareth@madpenguin.uk>
  */
-class mm_static_Deactivator {
+class make_me_static_Deactivator {
 
         /**
          * Short Description. (use period)

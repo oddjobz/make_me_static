@@ -12,9 +12,6 @@
    margin: 0;
    font-weight: normal;
 }
-body {
-    height: 100%;
-}
 div#wpcontent {
     padding-left:0!important;
     margin-bottom: 2em;
@@ -30,12 +27,12 @@ div.mm-static-main {
     height: 100%;
     display: flow-root;
 }
-div#mms-directory {
+div#make-me-static-directory {
     height: 100%;
     position: relative;
     font-family: var(--font-family);
 }
-div#mms-crawler secion.application {
+div#make-me-static-crawler secion.application {
     height: 100%;
 }
 
@@ -337,8 +334,12 @@ div.mm-static-main span.status-locked  {
     margin-bottom: 0;
     padding-bottom: 0;
 }
-
- body {
+#update-nag, .update-nag {
+    margin-top: 1em;
+    margin-left: 1em;
+}
+body {
+   height: 100%;
    color: var(--color-text);
    background: var(--color-background);
    transition: color 0.5s, background-color 0.5s;
