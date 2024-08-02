@@ -17,6 +17,15 @@
                 </template>
             </ConfirmDialog>
 
+            <ConfirmDialog group="okbox" class="okbox">
+                <template #message="slotProps">
+                    <div class="flex flex-col items-center w-full gap-4 border-b border-surface-200 dark:border-surface-700">
+                        <i :class="slotProps.message.icon" class="!text-6xl text-primary-500"></i>
+                        <p style="font-size: 1.1em" v-html="slotProps.message.message" />
+                    </div>
+                </template>
+            </ConfirmDialog>
+
             <div v-show="loading" style="width:100%;height: 527px;display:flex" class="justify-center">
                 <div class="spin-wrapper" v-if="!error">
                     <div class="spinner">
@@ -60,19 +69,19 @@
                                 <div v-if="selected == 'free'" style="height:100%">
                                     <div class="dialog-content">
                                         <p class="m-0 card-text" >
-                                            <ul style="margin-top:1em">
-                                                <li>Upgrade at any time</li>
-                                                <li>The minimum term for a subscription is 1 Month</li>
-                                                <li>Upgrade fees are included pro-rata in your next bill</li>
-                                            </ul>
                                             <div style="margin-top: 1em;font-size: 0.9em">
-                                                If you downgrade to the free service, subscriptions run to the end of the current billing
-                                                cycle and don't renew. Any other downgrades are available after 24h and refunds are included 
-                                                in your next bill on a pro-rata basis.
+                                                You may upgrade to a paid subscription at any time with a mininum 1 month term.
+                                                Once you have a paid subscription you may downgrade to a lower paid subscription no sooner than 24 hours
+                                                following an upgrade. 
+                                            </div>
+                                            <div style="margin-top: 1em;font-size: 0.9em">
+                                                Fees and credits for part month usage will appear pro-rata on your next bill.
+                                                If you downgrade to the free service, your subscription will run to the end of the current billing
+                                                cycle and won't renew.
                                             </div>
                                         </p>
                                         <div style="flex:1"></div>
-                                        <div style="text-align:center" v-if="has_subscription">
+                                        <!-- <div style="text-align:center" v-if="has_subscription">
                                             <Button
                                                 style="width:15em"
                                                 class="p-button" 
@@ -81,7 +90,7 @@
                                                 label="Cancel Subscription"
                                                 @click="onClickCancel">
                                             </Button>
-                                        </div>
+                                        </div> -->
                                     </div>
                                 </div>
                                 <div v-else class="dialog-content">
@@ -96,10 +105,21 @@
                                             class="p-button" 
                                             severity="warn" 
                                             icon="pi pi-credit-card" 
-                                            label="Change Payment Details"
+                                            label="Change Card Details"
                                             @click="onClickChangePayment">
                                         </Button>
                                     </div>
+                                    <div style="text-align:center" v-else>
+                                        <Button
+                                            style="width:15em"
+                                            class="p-button" 
+                                            severity="success"
+                                            icon="pi pi-credit-card" 
+                                            label="Reverse Cancellation"
+                                            @click="onClickReinstate">
+                                        </Button>
+                                    </div>
+
                                 </div>
                             </template>
                         </Card>
@@ -110,14 +130,10 @@
                                 <template #header>
                                     <img alt="setup wizard" :src="wizard_image" class="wizard">
                                 </template>
-
-                                <template #title v-if="!has_autorenew">
-                                    Your subscription is in the process of reverting to <span class="caption-class">FREE</span>
+                                <template #title>
+                                    You are currently subscribed to the <span class="caption-class"> {{ current_plan }}</span> plan
                                 </template>
-                                <template #title v-else>
-                                    Change your subscription to <span class="caption-class">{{ new_plan }}</span>
-                                </template>
-                                <template #content v-if="has_autorenew || (selected != 'free')">
+                                <template #content v-if="has_autorenew">
                                     <div class="dialog-content">
                                         <p class="m-0 card-text">
                                             You are currently subscribed to the <b>{{ current_plan }}</b> plan which is billed at <b>{{ current_price }}</b>
@@ -156,7 +172,7 @@
 <script setup>
 import { defineComponent, ref, watch, computed, inject, onMounted, nextTick } from 'vue';
 import { defineStore } from 'pinia';
-import { OrbitComponentMixin, useLogger } from '@/../node_modules/orbit-component-base';
+import { OrbitComponentMixin } from '@/../node_modules/orbit-component-base';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Card from 'primevue/card';
@@ -166,6 +182,7 @@ import { useConfirm } from "primevue/useconfirm";
 import { useSubsStore } from '@/stores/subsStore.js';
 import { useRouteStore } from '@/stores/routeStore.js';
 import { useRoute, useRouter } from 'vue-router';
+import { useLogger } from './OrbitLogger.js'
 import pkg from '../../package.json';
 //
 //  VUE Router
@@ -193,8 +210,6 @@ const checkout          = ref(null)
 const product_desc      = computed(() => products.value ? (selected.value in products.value ? products.value[selected.value].desc : '') : '')
 const change_prod       = computed(() => current_prod.value != selected.value)
 const current_prod      = ref(null)
-const show_cancellation = ref(false)
-const show_upgrade      = ref(false)
 const loading           = ref(true)
 const error             = ref(null)
 const route             = computed(() => route_data.value.get(route_ids.value[0]))
@@ -204,52 +219,33 @@ const new_price         = computed(() => selected.value in products.value ? prod
 const current_plan      = computed(() => route.value ? route.value.plan : '')
 const current_price     = computed(() => products.value[current_plan.value].currency)
 const has_autorenew     = computed(() => route.value && route.value.autorenew ? true : false)
-const subscription      = computed(() => route.value && route.value.sub? route.value.sub : null)
 const has_subscription  = computed(() => route.value && route.value.sub ? true : false)
 const days_remaining    = computed(() => {
     if (!route.value) return 0
     return route.value.days - parseInt((new Date() - new Date(route.value.since * 1000))/1000/60/60/24)
 })
+const days_since        = computed(() => {
+    return parseFloat((new Date() - new Date(route.value.since * 1000))/1000/60/60/24)
+})
 const wizard_image = computed(() => pkg.parameters.host + '/wizard.jpeg')
 
 onMounted(async () => {
     if (!opt.router) return vrouter.go()
-    log.debug ('* Loading subscription service: ', pkg.version, opt)
     await vrouter.isReady()
     await plugin (opt, namespace, socket);
     if (typeof Stripe === 'undefined') {
-        log.debug ('Loading Stripe API')
         let node = document.createElement ('script')
         node.setAttribute ('src', 'https://js.stripe.com/v3/')
         document.head.appendChild (node)
     }
     onLoadModule ()
-    //     if (authenticated.value && active.value) {
-    //         loadProducts()
-    //     }
-    // }
-    // visible.value = true
 })
-
-// watch (authenticated, () => {
-//     console.log("Auth=", authenticated.value)
-//     console.log("Active=", active.value)
-//     if (authenticated.value && active.value) loadProducts()
-// })
 watch (vroute, (curr) => {
-    log.error ('Stripe Route Change: ', curr)
     if (curr.path == '/stripe') {
-        log.info ('Loading MMSDIR Module')
         onLoadModule()
     }
 })
-
-
-watch (subscription, () => {
-    log.info('Subscription:', subscription.value)
-})
 watch (current_plan, (value) => {
-    log.info('Plan Change: ', value)
     current_prod.value = value
     selected.value = value
 })
@@ -259,7 +255,8 @@ watch (socket, () => {
 watch (authenticated, () => {
     loadProducts()
 })
-
+function setLoading () { loading.value = true }
+function clrLoading () { loading.value = false }
 function onHide () {
     visible.value = false
     nextTick(() => {
@@ -267,16 +264,15 @@ function onHide () {
         window.dispatchEvent(new CustomEvent('MMS_CHANGE_PATH', {detail: '/'}))
     })
 }
-
 function onLoadModule () {
     if (authenticated.value && active.value) loadProducts()
     nextTick(() => {
         visible.value = true
     })
 }
-
 function loadProducts () {
     if (!authenticated.value||!active.value) return
+    if (Object.keys(products.value).length) return
     if (!products.value.length) {
         log.info ('Loading product catalogue from Stripe')
         subsStore.init(app, root.value, socket.value).populate(root.value, (response) => {
@@ -299,10 +295,6 @@ function loadProducts () {
         clrLoading()
     }
 }
-
-function setLoading () { loading.value = true }
-function clrLoading () { loading.value = false }
-
 function onClickChange () {
     let message = '<div style="padding-left: 3em;padding-right:3em;max-width:500px">'+
                         'This will change your subscription to <b>' + new_plan.value.toUpperCase() + '</b> billed at <b>'+ new_price.value + '</b> per month. ' +
@@ -344,8 +336,31 @@ function onClickChange () {
 function onClickCancel () {
     log.info('Cancel Subscription')
 }
+function onClickReinstate () {
+    log.info('Reinstate Subscription')
+    let message = '<div style="padding-left: 1em;padding-right:1em;max-width:550px">'+
+                        'This will reverse your cancellation and re-instate your subscription such that it will renew automatically in <b>' + days_remaining.value + '</b> days. '+
+                        'Are you sure you wish to continue?'+
+                    '</div>'
+    confirm.require({
+        group: 'templating',
+        header: 'Reverse your Cancellation',
+        message: message,
+        accept: () => {
+            setLoading()
+            let params = {plan: new_plan.value, price_id: product.value.id}
+            subsStore.call (root.value, 'reverse_cancellation', params, (response) => {
+                log.info (response)
+                if (!response||!response.ok) error.value = 'Error calling "reverse_cancellation", please contact support@madpenguin.uk'
+                else clrLoading()
+            })
+        },
+        reject: () => {
+            log.debug ('Abort reversal')
+        }
+    });
+}
 async function onClickChangePayment () {
-    log.info('Change Payment Details')
     setLoading()
     subsStore.call (root.value, 'update_payment_details', {}, (response) => {
         log.info (response)
@@ -353,36 +368,45 @@ async function onClickChangePayment () {
         else clrLoading()
         selected.value = current_plan.value
     })
-
     const fetchClientSecret = async () => {
         let response = await subsStore.sync_call (root.value, 'update_payment_details', {})
         return response.client_secret;
     }
-    const onFormComplete = async () => {
-        // current_prod.value = selected.value
-        formReset()
-    }
+    const onFormComplete = async () => formReset()
     const stripe = Stripe(pub_api_key)
     checkout.value = await stripe.initEmbeddedCheckout({fetchClientSecret, onComplete: onFormComplete})
     checkout.value.mount( '#checkout' )
 }
-
 function formReset () {
     if (checkout.value) {
         checkout.value.unmount( '#checkout')
         checkout.value.destroy()
         checkout.value = null
     }
-    // if (change_prod.value) onClickSubscribe()
 }
-
 function onClickProduct (key) {
+    if (selected.value == key) {
+        log.warn ('No Change!', selected.value, key)
+        return
+    }
+    if ((current_prod.value != 'free') && (key != 'free')) {
+        let old_cost = parseFloat(products.value[current_prod.value].cost)
+        let new_cost = parseFloat(products.value[key].cost)
+        log.warning ('Old=', old_cost, ' New=', new_cost, ' Days=', days_since.value, ' Bool=', new_cost < old_cost)
+        if ((new_cost < old_cost) && (days_since.value < 1)) {
+            log.warn ('Attempt to downgrade too soon!')
+            confirm.require({
+                group: 'okbox',
+                header: 'Too Soon!',
+                message: 'You must wait at least 24h following an upgrade before you can downgrade!',
+            });
+            return
+        }
+    }
     selected.value = key
     if (checkout.value) formReset()
-    log.error(current_prod.value)
     if (current_prod.value == 'free' && change_prod.value) startSubscription()
 }
-
 async function startSubscription () {
     const fetchClientSecret = async () => {
         let response = await subsStore.sync_call (root.value, 'create_checkout_session', {price_id: product.value.id})
@@ -395,20 +419,6 @@ async function startSubscription () {
     const stripe = Stripe(pub_api_key)
     checkout.value = await stripe.initEmbeddedCheckout({fetchClientSecret, onComplete: onFormComplete})
     checkout.value.mount( '#checkout' )
-}
-async function startCancellation () {
-    show_cancellation.value = true
-}
-async function startUpgrade () {
-    show_upgrade.value = true
-}
-async function onClickSubscribe () {
-    // if (current_prod.value == 'free')
-    //     startSubscription ()
-    // else if (selected.value == 'free')
-    //     startCancellation ()
-    // else
-    //     startUpgrade()
 }
 </script>
 
@@ -565,5 +575,12 @@ ul.products li:not(:nth-child(4)) {
 }
 .subscription-dialog .p-card-body .p-card-content {
     height: 100%
+}
+div.p-dialog.p-component.p-ripple-disabled.p-confirm-dialog.okbox {
+    background-color: white;
+}
+.okbox div.p-dialog-footer {
+    height:0;
+    visibility: hidden;
 }
 </style>

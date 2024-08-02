@@ -123,13 +123,8 @@ const crawler_app   = ref(null)
 //  Wait for the Vue Router to come ready
 //
 onMounted(async () => {
-    log.debug ('Loading MMS DIR service: ', pkg.version)
     nonce.value = window.MMS_API_Settings.nonce
     await vrouter.isReady()
-    log.warn('Authenticated=', auth1.value)
-    log.warn('Auth2=', auth2.value)
-    log.warn('State=', state.value)
-    log.warn('Active=', active.value)
     if (auth1.value) registerWithWordpress()
 })
 //
@@ -147,7 +142,6 @@ const emitRoute = () => {
 //  doesn't expose anything that's not already public.
 //
 watch (auth1, () => {
-    log.warn ('Event: Auth1')
     registerWithWordpress()
 })
 //  watch auth2 - this happens when we make a virtual connection to the directory application
@@ -155,18 +149,10 @@ watch (auth1, () => {
 //  do just that, grab our route object.
 //
 watch (auth2, () => {
-    log.warn ('Event: Auth2')
     loadRoute()
 })
-
-watch (socket, () => {
-    log.warn ('Event: Socket')
-})
-
 watch (vroute, (curr) => {
-    log.error ('Route Change: ', curr)
-    if (curr.path == '/') {
-        log.info ('Loading MMSDIR Module')
+    if (curr.path == '/' && !crawler_app.value) {
         onLoadModule()
     }
 })
@@ -183,7 +169,9 @@ watch (route, (curr, prev) => {
         //  If we've accepted the terms and conditions, then load the crawler
         //  otherwise, go to the unauthorized page
         //
-        if (route.value.answer) loadCrawler (); else state.value = 2
+        if (route.value.answer) {
+            if (vrouter.currentRoute.value.fullPath == '/' && !crawler_app.value) loadCrawler ();
+         } else state.value = 2
     }
     //
     //  Pass the route object on to the VUE loaded crawler
@@ -301,10 +289,6 @@ function loadCrawler () {
     //  in DEV mode, otherwise it will be a minified asset.
     //
     const url = new URL(route.value.url);
-
-    log.error("Settings>", window.MMS_API_Settings)
-
-
     url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
     //
     //  This is our (very simple but effective) loader
