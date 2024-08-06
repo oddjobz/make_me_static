@@ -40,6 +40,7 @@ build_php:
 #
 	@cp ${PHPSRC}/index.php ${BUILD}
 	@cp ${PHPSRC}/make-me-static.php ${BUILD}
+	@cp ${PHPSRC}/../composer.json ${BUILD}
 	@cp -ra ${PHPSRC}/admin ${BUILD}
 	@cp -ra ${PHPSRC}/public ${BUILD}
 	@cp -ra ${PHPSRC}/languages ${BUILD}
