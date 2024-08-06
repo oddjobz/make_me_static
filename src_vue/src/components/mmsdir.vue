@@ -69,6 +69,15 @@
 </template>
 
 <script setup>
+//
+//  Allowed States
+//  0. Catch all - normal operation
+//  1. Loading (display loading message)
+//  2. Terms and Conditions (need to be confirmed)
+//  3. Rejected (Display if terms not accepted)
+//  4. Unauthorized, error on account
+//  5. Unauthorized, loading from unauthorized location
+
 import ProgressSpinner from 'primevue/progressspinner';
 import { defineComponent, ref, watch, computed, inject, onMounted, toRaw, readonly } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -156,27 +165,27 @@ watch (vroute, (curr) => {
         onLoadModule()
     }
 })
-
 //
 //  watch route - this will tell us which MMS crawler service to connect to. This may change
 //  dynamically if a license changes or a server is under excessive load. License changes are UI
 //  reactivel, but a crawler change required loading the UI module for that specific crawler, as
 //  crawlers may deploy different versions of the software.
 //
-watch (route, (curr, prev) => {
-    if (curr && (!prev || (curr.url != prev.url))) {
-        //
-        //  If we've accepted the terms and conditions, then load the crawler
-        //  otherwise, go to the unauthorized page
-        //
+watch (route, () => {
+    //
+    //  If we've accepted the terms and conditions, then load the crawler
+    //  otherwise, go to the unauthorized page
+    //
+    if (route.value) {
         if (route.value.answer) {
             if (vrouter.currentRoute.value.fullPath == '/' && !crawler_app.value) loadCrawler ();
-         } else state.value = 2
+            else state.value = 0;
+        } else state.value = 2
+        //
+        //  Pass the route object on to the VUE loaded crawler
+        //
+        emitRoute()
     }
-    //
-    //  Pass the route object on to the VUE loaded crawler
-    //
-    emitRoute()
 })
 
 function onLoadModule () {
@@ -394,6 +403,7 @@ export default defineComponent({
     font-weight: 500;
 }
 .unauthorized .head {
+    margin-top: 10em;
     font-size: 2em;
     font-weight: 800;
 }

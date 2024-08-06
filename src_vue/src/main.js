@@ -10,6 +10,7 @@ import PrimeVue from 'primevue/config';
 import App from './App.vue'
 import metadata from '@/../package.json';
 import ConfirmationService from 'primevue/confirmationservice';
+import Tooltip from 'primevue/tooltip';
 
 const router = createRouter({ history: createWebHashHistory(), routes: [] })
 const pinia = createPinia()
@@ -19,6 +20,7 @@ const menu = reactive([])
 app.metadata = metadata
 app.metadata.components = new Map()
 pinia.use(BaseClass)
+app.directive('tooltip', Tooltip)
 app.use(pinia)
 app.use(OrbitConnection, {pinia: pinia})
 app.provide('$menu', menu)

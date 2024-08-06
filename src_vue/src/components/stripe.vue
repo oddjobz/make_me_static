@@ -2,11 +2,30 @@
     <section class="content stripe">
         <Dialog 
             @update:visible="onHide"
-            modal header="MMS Subscription Management"
+            @show="onShow"
             style="width:1050px;max-height:95%"
             class="subscription-dialog"
+            :closable="false"
             :visible="visible"
-            :closeOnEscape="true" :draggable="false">
+            :draggable="false">
+
+            <template #header>
+                <div style="display:flex;flex-direction: row;width:100%">
+                    <div style="font-size:1.6em;font-weight:600">MMS Subscription Management</div>
+                    <div style="flex:1"></div>
+                    <Button
+                        v-tooltip.top="{
+                            value: 'Change email address'
+                        }"
+                        class="p-dialog-header-icon" type="button" icon="pi pi-cog" severity="primary" @click="email_change=true" size="large">
+                    </Button>
+                    <Button 
+                        v-tooltip.top="{
+                                value: 'Close subcription management'
+                            }"
+                    class="p-dialog-header-icon" type="button" icon="pi pi-times-circle" severity="primary" @click="onHide" size="large"></Button>
+                </div>
+            </template>
 
             <ConfirmDialog group="templating">
                 <template #message="slotProps">
@@ -42,125 +61,188 @@
             </div>
 
             <div v-show="!loading && visible">
-                <ul class="products">
-                    <li v-for="(val, key) in products" :key="key" style="flex:1">
-                        <div 
-                            @click="onClickProduct (key)"
-                            :class='key == selected ? "product selected" : "product"'
-                            >
-                            <div><span class="name">{{ key }}</span> <span class="price">({{val.currency}}/month)</span></div>
-                        </div>
-                    </li>
-                </ul>
-                <div id="checkout" v-show="checkout"></div>
-                <div v-if="!checkout">
-                    <Card class="product-description">
+                <div v-if="!verified">
+                    <Card class="dialog-body">
+                        <template #header>
+                            <img alt="setup wizard" :src="wizard_image" class="wizard">
+                        </template>
                         <template #content>
-                            {{ product_desc }}
+                            <div class="dialog-content">
+                                <p class="m-0 card-text" v-if="ready_to_email">
+                                    <div style="margin-top: 1em;font-size: 0.9em">
+                                        We need your EMail addreess in order to confirm your identity. We will
+                                        send a verification link to this address, please click on this link in 
+                                        this email to access the subscriptions section.
+                                        
+                                    </div>
+                                    <div class="flex flex-column gap-2" style="margin-left:4em;margin-right:4em">
+                                        <label for="email"><b>EMail Address</b></label>
+                                        <InputText 
+                                            :invalid="!isEmailValid"
+                                            id="email"
+                                            type="email"
+                                            v-model="email"
+                                            aria-describedby="email-help"/>
+                                        <small id="username-help" v-if="email_count < 1">Please make sure you use the right address and the right spelling!</small>
+                                        <small id="username-help" v-else>Email links sent so far, {{ email_count }} of a maximum of 3</small>
+                                    </div>
+                                </p>
+                                <p v-else class="m-0 card-text">
+                                    <div style="margin-top: 1em;font-size: 0.9em" v-if="email_count < 3">
+                                        <div style="font-weight:500;margin-bottom:0.7em;font-size:1.3em;text-align: center;">Verification sent!</div>
+                                        {{ email_count == 1 ? "We've sent a verification link to your email address." : "We've sent " + email_count + " verification links to your email address." }} 
+                                        Please check your email and click on the link supplied.
+                                        You can try again in 60 seconds if it doesn't arrive. If this fails three times, you will need to contact 
+                                        <a href="https://support.madpenguin.uk">Mad Penguin Support</a> to resolve the issue.
+                                        <br/><br/><div style="text-align: center">(make sure to check in your Spam folder just in case!)</div>
+                                    </div>
+                                    <div style="margin-top: 1em;font-size: 0.9em" v-else>
+                                        <div style="font-weight:500;margin-bottom:1em;font-size:1.3em;text-align: center;">No more attempts available!</div>
+                                        We've now sent 3 verification links to your email address. Please note that only the most recent link sent will work.
+                                        If you have not been able to activate your account, please contact us on the Forums at 
+                                        <a href="https://support.madpenguin.uk">Mad Penguin Support</a> to resolve the issue.
+                                        <br/><br/><div style="text-align: center">(make sure to check in your Spam folder just in case!)</div>
+                                    </div>
+                                </p>
+                                <div style="flex:1"></div>
+                                <div style="text-align:center" v-if="email_count < 3">
+                                    <Button
+                                        :disabled="!isEmailValid || !ready_to_email"
+                                        :loading="!ready_to_email"
+                                        style="width:15em"
+                                        class="p-button" 
+                                        severity="info" 
+                                        icon="pi pi-envelope" 
+                                        :label="ready_to_email ? 'Send Verification Link' : 'Waiting... (' + (60-parseInt(email_countdown)) + ')'"
+                                        @click="onClickVerifyEmail">
+                                    </Button>
+                                    <span v-if="email_change && !isEmailValid">
+                                        &nbsp;&nbsp;
+                                        <Button 
+                                            style="width:7em"
+                                            class="p-button" 
+                                            severity="help" 
+                                            icon="pi pi-times-circle" 
+                                            label="Cancel"
+                                            @click="email_change=false">
+                                        </Button>
+                                    </span>
+                                </div>
+                            </div>
                         </template>
                     </Card>
-                    <div v-if="!changed"> 
-                        <Card class="dialog-body">
-                            <template #header>
-                                <img alt="setup wizard" :src="wizard_image" class="wizard">
-                            </template>
-                            <template #title>You are currently subscribed to this service</template>
+                </div>
+                <div v-else>
+                    <ul class="products">
+                        <li v-for="(val, key) in products" :key="key" style="flex:1">
+                            <div 
+                                @click="onClickProduct (key)"
+                                :class='key == selected ? "product selected" : "product"'
+                                >
+                                <div><span class="name">{{ key }}</span> <span class="price">({{val.currency}}/month)</span></div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div id="checkout" v-show="checkout"></div>
+                    <div v-if="!checkout">
+                        <Card class="product-description">
                             <template #content>
-                                <div v-if="selected == 'free'" style="height:100%">
-                                    <div class="dialog-content">
-                                        <p class="m-0 card-text" >
-                                            <div style="margin-top: 1em;font-size: 0.9em">
-                                                You may upgrade to a paid subscription at any time with a mininum 1 month term.
-                                                Once you have a paid subscription you may downgrade to a lower paid subscription no sooner than 24 hours
-                                                following an upgrade. 
-                                            </div>
-                                            <div style="margin-top: 1em;font-size: 0.9em">
-                                                Fees and credits for part month usage will appear pro-rata on your next bill.
-                                                If you downgrade to the free service, your subscription will run to the end of the current billing
-                                                cycle and won't renew.
-                                            </div>
-                                        </p>
-                                        <div style="flex:1"></div>
-                                        <!-- <div style="text-align:center" v-if="has_subscription">
-                                            <Button
-                                                style="width:15em"
-                                                class="p-button" 
-                                                severity="danger" 
-                                                icon="pi pi-trash" 
-                                                label="Cancel Subscription"
-                                                @click="onClickCancel">
-                                            </Button>
-                                        </div> -->
-                                    </div>
-                                </div>
-                                <div v-else class="dialog-content">
-                                    <p class="m-0 card-text" style="flex:1">
-                                        <div v-if="!has_autorenew" class="revert">
-                                            This service has been cancelled and will revert to a free subscription in <b>{{ days_remaining }}</b> days.
-                                        </div>
-                                    </p>
-                                    <div style="text-align:center" v-if="has_subscription && has_autorenew">
-                                        <Button
-                                            style="width:15em"
-                                            class="p-button" 
-                                            severity="warn" 
-                                            icon="pi pi-credit-card" 
-                                            label="Change Card Details"
-                                            @click="onClickChangePayment">
-                                        </Button>
-                                    </div>
-                                    <div style="text-align:center" v-else>
-                                        <Button
-                                            style="width:15em"
-                                            class="p-button" 
-                                            severity="success"
-                                            icon="pi pi-credit-card" 
-                                            label="Reverse Cancellation"
-                                            @click="onClickReinstate">
-                                        </Button>
-                                    </div>
-
-                                </div>
+                                {{ product_desc }}
                             </template>
                         </Card>
-                    </div>
-                    <div v-else>
-                        <div v-if="current_prod != 'free'">
+                        <div v-if="!changed"> 
                             <Card class="dialog-body">
                                 <template #header>
                                     <img alt="setup wizard" :src="wizard_image" class="wizard">
                                 </template>
-                                <template #title>
-                                    You are currently subscribed to the <span class="caption-class"> {{ current_plan }}</span> plan
-                                </template>
-                                <template #content v-if="has_autorenew">
-                                    <div class="dialog-content">
-                                        <p class="m-0 card-text">
-                                            You are currently subscribed to the <b>{{ current_plan }}</b> plan which is billed at <b>{{ current_price }}</b>
-                                            per month. If you select this option your subscription will be changed to the <b>{{ new_plan }}</b> plan 
-                                            <span v-if="selected == 'free'">
-                                                at the end of the current billing cycle in <b>{{ days_remaining }}</b> days time.
-                                            </span>
-                                            <span v-else>
-                                                which is billed at <b>{{ new_price }}</b> per month. Note that your bill for the next billing cycle will be at
-                                                the new rate and will include a one-off pro-rata for <b>{{ days_remaining }}</b> days of the current bulling period at 
-                                                the new rate.
-                                            </span>
+                                <template #title>You are currently subscribed to this service</template>
+                                <template #content>
+                                    <div v-if="selected == 'free'" style="height:100%">
+                                        <div class="dialog-content">
+                                            <p class="m-0 card-text" >
+                                                <div style="margin-top: 1em;font-size: 0.9em">
+                                                    You may upgrade to a paid subscription at any time with a mininum 1 month term.
+                                                    Once you have a paid subscription you may downgrade to a lower paid subscription no sooner than 48 hours
+                                                    following an upgrade. 
+                                                </div>
+                                                <div style="margin-top: 1em;font-size: 0.9em">
+                                                    Fees and credits for part month usage will appear pro-rata on your next bill.
+                                                    If you downgrade to the free service, your subscription will run to the end of the current billing
+                                                    cycle and won't renew.
+                                                </div>
+                                            </p>
+                                            <div style="flex:1"></div>
+                                        </div>
+                                    </div>
+                                    <div v-else class="dialog-content">
+                                        <p class="m-0 card-text" style="flex:1">
+                                            <div v-if="!has_autorenew" class="revert">
+                                                This service has been cancelled and will revert to a free subscription in <b>{{ days_remaining }}</b> days.
+                                            </div>
                                         </p>
-                                        <div style="flex:1"></div>
-                                        <div style="text-align:center">
+                                        <div style="text-align:center" v-if="has_subscription && has_autorenew">
                                             <Button
                                                 style="width:15em"
                                                 class="p-button" 
-                                                severity="help" 
-                                                icon="pi pi-user-edit" 
-                                                label="Change Subscription"
-                                                @click="onClickChange">
+                                                severity="warn" 
+                                                icon="pi pi-credit-card" 
+                                                label="Change Card Details"
+                                                @click="onClickChangePayment">
                                             </Button>
                                         </div>
+                                        <div style="text-align:center" v-else>
+                                            <Button
+                                                style="width:15em"
+                                                class="p-button" 
+                                                severity="success"
+                                                icon="pi pi-credit-card" 
+                                                label="Reverse Cancellation"
+                                                @click="onClickReinstate">
+                                            </Button>
+                                        </div>
+
                                     </div>
                                 </template>
                             </Card>
+                        </div>
+                        <div v-else>
+                            <div v-if="current_prod != 'free'">
+                                <Card class="dialog-body">
+                                    <template #header>
+                                        <img alt="setup wizard" :src="wizard_image" class="wizard">
+                                    </template>
+                                    <template #title>
+                                        You are currently subscribed to the <span class="caption-class"> {{ current_plan }}</span> plan
+                                    </template>
+                                    <template #content v-if="has_autorenew">
+                                        <div class="dialog-content">
+                                            <p class="m-0 card-text">
+                                                You are currently subscribed to the <b>{{ current_plan }}</b> plan which is billed at <b>{{ current_price }}</b>
+                                                per month. If you select this option your subscription will be changed to the <b>{{ new_plan }}</b> plan 
+                                                <span v-if="selected == 'free'">
+                                                    at the end of the current billing cycle in <b>{{ days_remaining }}</b> days time.
+                                                </span>
+                                                <span v-else>
+                                                    which is billed at <b>{{ new_price }}</b> per month. Note that your bill for the next billing cycle will be at
+                                                    the new rate and will include a one-off pro-rata for <b>{{ days_remaining }}</b> days of the current bulling period at 
+                                                    the new rate.
+                                                </span>
+                                            </p>
+                                            <div style="flex:1"></div>
+                                            <div style="text-align:center">
+                                                <Button
+                                                    style="width:15em"
+                                                    class="p-button" 
+                                                    severity="help" 
+                                                    icon="pi pi-user-edit" 
+                                                    label="Change Subscription"
+                                                    @click="onClickChange">
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </Card>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -178,6 +260,7 @@ import Dialog from 'primevue/dialog';
 import Card from 'primevue/card';
 import ConfirmDialog from 'primevue/confirmdialog';
 import ProgressSpinner from 'primevue/progressspinner';
+import InputText from 'primevue/inputtext';
 import { useConfirm } from "primevue/useconfirm";
 import { useSubsStore } from '@/stores/subsStore.js';
 import { useRouteStore } from '@/stores/routeStore.js';
@@ -198,7 +281,7 @@ const subsStore         = useSubsStore()
 const routeStore        = useRouteStore()
 const active            = computed(() => socket.value.connected)
 const authenticated     = computed(() => connection.authenticated)
-const visible           = ref(false)
+const visible           = ref(true)
 const route_data        = computed(() => routeStore.data)
 const route_ids         = computed(() => routeStore.ids(root.value))
 const root              = computed(() => opt.router  ? opt.router.currentRoute.value.meta.root : '')
@@ -211,7 +294,15 @@ const product_desc      = computed(() => products.value ? (selected.value in pro
 const change_prod       = computed(() => current_prod.value != selected.value)
 const current_prod      = ref(null)
 const loading           = ref(true)
+const verified          = computed(() => {
+    log.info ('verified:', route.value ? route.value.verified : undefined)
+    log.info ('change:', email_change.value)
+    return route.value && !email_change.value ? route.value.verified : false
+})
 const error             = ref(null)
+const email             = ref('')
+const email_ref         = ref('')
+const email_change      = ref(false)
 const route             = computed(() => route_data.value.get(route_ids.value[0]))
 const changed           = computed(() => current_prod.value && selected.value ? current_prod.value != selected.value : false)
 const new_plan          = computed(() => selected.value)
@@ -220,6 +311,12 @@ const current_plan      = computed(() => route.value ? route.value.plan : '')
 const current_price     = computed(() => products.value[current_plan.value].currency)
 const has_autorenew     = computed(() => route.value && route.value.autorenew ? true : false)
 const has_subscription  = computed(() => route.value && route.value.sub ? true : false)
+const email_when        = ref(null)
+const email_count       = computed(() => route.value && route.value.email_count ? route.value.email_count : 0)
+const email_countdown   = computed(() => email_when.value  ? (time_now.value - email_when.value)/1000 : 0)
+const ready_to_email    = computed(() => (email_count.value < 3) && (!email_when.value || (time_now.value - email_when.value)/1000 > 60) ? true : false)
+
+const time_now          = ref(new Date())
 const days_remaining    = computed(() => {
     if (!route.value) return 0
     return route.value.days - parseInt((new Date() - new Date(route.value.since * 1000))/1000/60/60/24)
@@ -227,17 +324,40 @@ const days_remaining    = computed(() => {
 const days_since        = computed(() => {
     return parseFloat((new Date() - new Date(route.value.since * 1000))/1000/60/60/24)
 })
-const wizard_image = computed(() => pkg.parameters.host + '/wizard.jpeg')
+const wizard_image      = computed(() => pkg.parameters.host + '/wizard.jpeg')
+const isEmailValid      = computed(() => (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.value)))
+
+function onShow () {
+    setTimeout(() => {
+        document.getElementById('email')?.focus()
+    }, 100)
+    setTimeout(() => {
+        document.getElementById('email')?.focus()
+    }, 1000)
+    setTimeout(() => {
+        document.getElementById('email')?.focus()
+    }, 2000)
+}
 
 onMounted(async () => {
     if (!opt.router) return vrouter.go()
     await vrouter.isReady()
-    await plugin (opt, namespace, socket);
+    await plugin (opt, 'mmsdir', socket);
     if (typeof Stripe === 'undefined') {
         let node = document.createElement ('script')
         node.setAttribute ('src', 'https://js.stripe.com/v3/')
         document.head.appendChild (node)
     }
+    setInterval(() => {
+        time_now.value = new Date()
+        // if (!email_when.value || (((time_now.value - email_when.value)/1000) > 60 && email_count.value < 3)) {
+            // log.error('Set to True')
+            // if (!ready_to_send.value) ready_to_send.value = true
+        // } else {
+            // log.error('Set to False', email_countdown.value)
+            // if (ready_to_send.value) ready_to_send.value = false
+        // }
+    }, 1000)
     onLoadModule ()
 })
 watch (vroute, (curr) => {
@@ -255,6 +375,7 @@ watch (socket, () => {
 watch (authenticated, () => {
     loadProducts()
 })
+
 function setLoading () { loading.value = true }
 function clrLoading () { loading.value = false }
 function onHide () {
@@ -332,10 +453,6 @@ function onClickChange () {
         }
     });
 }
-
-function onClickCancel () {
-    log.info('Cancel Subscription')
-}
 function onClickReinstate () {
     log.info('Reinstate Subscription')
     let message = '<div style="padding-left: 1em;padding-right:1em;max-width:550px">'+
@@ -360,6 +477,21 @@ function onClickReinstate () {
         }
     });
 }
+
+async function onClickVerifyEmail () {
+    setLoading()
+    subsStore.call (root.value, 'send_verification_email', {email: email.value}, (response) => {
+        email_change.value = false
+        log.info (response)
+        clrLoading()
+        if (!response||!response.ok) {
+            error.value = 'Error calling "send_verification_email", please email support@madpenguin.uk'
+            return
+        }
+        email_when.value = new Date()
+    })
+}
+
 async function onClickChangePayment () {
     setLoading()
     subsStore.call (root.value, 'update_payment_details', {}, (response) => {
@@ -372,7 +504,9 @@ async function onClickChangePayment () {
         let response = await subsStore.sync_call (root.value, 'update_payment_details', {})
         return response.client_secret;
     }
-    const onFormComplete = async () => formReset()
+    const onFormComplete = async (args) => {
+        formReset()
+    }
     const stripe = Stripe(pub_api_key)
     checkout.value = await stripe.initEmbeddedCheckout({fetchClientSecret, onComplete: onFormComplete})
     checkout.value.mount( '#checkout' )
@@ -393,12 +527,12 @@ function onClickProduct (key) {
         let old_cost = parseFloat(products.value[current_prod.value].cost)
         let new_cost = parseFloat(products.value[key].cost)
         log.warning ('Old=', old_cost, ' New=', new_cost, ' Days=', days_since.value, ' Bool=', new_cost < old_cost)
-        if ((new_cost < old_cost) && (days_since.value < 1)) {
+        if ((new_cost < old_cost) && (days_since.value < 2)) {
             log.warn ('Attempt to downgrade too soon!')
             confirm.require({
                 group: 'okbox',
                 header: 'Too Soon!',
-                message: 'You must wait at least 24h following an upgrade before you can downgrade!',
+                message: 'You must wait at least 48h following an upgrade before you can downgrade!',
             });
             return
         }
@@ -543,6 +677,20 @@ ul.products li:not(:nth-child(4)) {
     color:rgb(206, 32, 76);
     font-size: 1.1em;
 }
+.flex {
+    font-size: 0.9em;
+    padding-top: 1em;
+    display: flex;
+}
+.flex-column {
+    flex-direction: column;
+}
+.gap-2 {
+    gap: 0.5rem;
+}
+.p-invalid {
+    color: rgb(163, 18, 91);
+}
 </style>
 
 <style>
@@ -582,5 +730,8 @@ div.p-dialog.p-component.p-ripple-disabled.p-confirm-dialog.okbox {
 .okbox div.p-dialog-footer {
     height:0;
     visibility: hidden;
+}
+.p-tooltip {
+    max-width: 400px;
 }
 </style>
