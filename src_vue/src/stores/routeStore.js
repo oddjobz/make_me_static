@@ -33,19 +33,19 @@ export const useRouteStore = defineStore('routeStore', {
         //
         //  Make sure this user is a Wordpress Admin
         //
-        validate (root, callback=null) {
-            let params = {
-                uuid: this.mms.uuid,
-                url: this.mms.url,
-                user: this.mms.user,
-                make_me_static: this.mms
-            }
-            const socket = this._sockets.get(root)
-            if (!socket) throw 'socket not initialised'
-            socket.emit('validate_connection', params, (response) => {
-                if (callback) callback(response)
-            })
-        },
+        // validate (root, callback=null) {
+        //     let params = {
+        //         uuid: this.mms.uuid,
+        //         url: this.mms.url,
+        //         user: this.mms.user,
+        //         make_me_static: this.mms
+        //     }
+        //     const socket = this._sockets.get(root)
+        //     if (!socket) throw 'socket not initialised'
+        //     socket.emit('validate_connection', params, (response) => {
+        //         if (callback) callback(response)
+        //     })
+        // },
         //
         //  Record that this user has accepted the Terms
         //

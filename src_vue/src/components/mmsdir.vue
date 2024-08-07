@@ -25,7 +25,14 @@
                 </div>
             </template>
         </ConfirmDialog>
-        <div class="spin-wrapper" v-if="state==1">
+        <div class="unauthorized" v-if="is_disabled">
+            <div class="head">A C C O U N T &nbsp;&nbsp;&nbsp; D I S A B L E D</div>
+            <p class="text">
+                <div>Sorry, this account has been disabled. Please contact <a href="https://support.madpenguin.uk">Mad Penguin Support</a></div>
+                <div>Or Email us at <a href="mailto:support@madpenguin.uk">Support @ MadPenguin.uk</a></div>
+            </p>
+        </div>
+        <div class="spin-wrapper" v-else-if="state==1">
             <div class="spinner">
                 <ProgressSpinner style="width:70px;height:70px;visibility: visible" strokeWidth="8"/>
                 <div class="loading">L O A D I N G ...</div>
@@ -62,7 +69,7 @@
                 <div>This looks like a software bug, please report code: {{ state }} to support@madpenguin.uk</div>
             </p>
         </div>
-        <div class="main-display" v-show="state==0">
+        <div class="main-display" v-show="state==0 && !is_disabled">
             <div id="make-me-static-crawler" :style="app_style" />
         </div>
     </section>
@@ -128,6 +135,7 @@ const apiurl        = ref(window.MMS_API_Settings.apiurl)
 const nonce         = ref(null)
 const log           = useLogger()
 const crawler_app   = ref(null)
+const is_disabled   = computed(() => route.value ? route.value.disabled : false)
 //
 //  Wait for the Vue Router to come ready
 //

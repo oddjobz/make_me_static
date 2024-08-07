@@ -13,6 +13,14 @@
                 <div style="display:flex;flex-direction: row;width:100%">
                     <div style="font-size:1.6em;font-weight:600">MMS Subscription Management</div>
                     <div style="flex:1"></div>
+                    <a href="https://support.madpenguin.uk" target="_blank" style="color:transparent">
+                    <Button
+                        v-tooltip.top="{
+                            value: 'Visit the support forums'
+                        }"
+                        class="p-dialog-header-icon" type="button" icon="pi pi-info-circle" severity="primary" size="large">
+                    </Button>
+                    </a>
                     <Button
                         v-tooltip.top="{
                             value: 'Change email address'
@@ -175,6 +183,9 @@
                                         </div>
                                     </div>
                                     <div v-else class="dialog-content">
+                                        <p class="m-0 card-text" style="text-align: center;padding-top:1em">
+                                            Account Email: <span style="color:teal;font-weight:500">{{ route.email_address }}</span>
+                                        </p>
                                         <p class="m-0 card-text" style="flex:1">
                                             <div v-if="!has_autorenew" class="revert">
                                                 This service has been cancelled and will revert to a free subscription in <b>{{ days_remaining }}</b> days.
@@ -188,7 +199,7 @@
                                                 icon="pi pi-credit-card" 
                                                 label="Change Card Details"
                                                 @click="onClickChangePayment">
-                                            </Button>
+                                            </Button>&nbsp;
                                         </div>
                                         <div style="text-align:center" v-else>
                                             <Button
@@ -315,7 +326,6 @@ const email_when        = ref(null)
 const email_count       = computed(() => route.value && route.value.email_count ? route.value.email_count : 0)
 const email_countdown   = computed(() => email_when.value  ? (time_now.value - email_when.value)/1000 : 0)
 const ready_to_email    = computed(() => (email_count.value < 3) && (!email_when.value || (time_now.value - email_when.value)/1000 > 60) ? true : false)
-
 const time_now          = ref(new Date())
 const days_remaining    = computed(() => {
     if (!route.value) return 0
@@ -382,6 +392,7 @@ function onHide () {
     visible.value = false
     nextTick(() => {
         formReset ()
+        selected.value = current_prod.value
         window.dispatchEvent(new CustomEvent('MMS_CHANGE_PATH', {detail: '/'}))
     })
 }

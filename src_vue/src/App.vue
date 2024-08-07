@@ -52,4 +52,9 @@ export default defineComponent({
 })
 </script>
 
+<style lang="scss">
+@import 'primevue/resources/primevue.min.css';
+@import '@/includes/primeicons.css';
+@import "primeflex/primeflex.css";
+</style>
 
