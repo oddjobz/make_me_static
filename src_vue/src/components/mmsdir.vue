@@ -32,7 +32,7 @@
             </div>
         </div>
         <div class="spin-wrapper" v-else-if="state==2">
-            <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="state=1"/>
+            <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="loadCrawler()"/>
         </div>
         <div class="unauthorized" v-else-if="state==3">
             <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
