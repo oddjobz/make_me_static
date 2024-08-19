@@ -25,13 +25,13 @@
                 </div>
             </template>
         </ConfirmDialog>
-        <div class="unauthorized" v-if="is_disabled">
-            <div class="head">A C C O U N T &nbsp;&nbsp;&nbsp; D I S A B L E D</div>
-            <p class="text">
-                <div>Sorry, this account has been disabled. Please contact <a href="https://support.madpenguin.uk">Mad Penguin Support</a></div>
-                <div>Or Email us at <a href="mailto:support@madpenguin.uk">Support @ MadPenguin.uk</a></div>
-            </p>
-        </div>
+        <Card class="error-card" v-if="is_disabled">
+            <template #title><div class="head">ACCOUNT DISABLED</div></template>
+            <template #content><p class="text">
+                <div>Sorry, this account has been disabled. Please contact <b><a href="https://support.madpenguin.uk">Mad Penguin Support</a></b></div>
+                <div>Or Email us at <b><a href="mailto:support@madpenguin.uk">Support@MadPenguin.uk</a></b></div>
+            </p></template>
+        </Card>
         <div class="spin-wrapper" v-else-if="state==1">
             <div class="spinner">
                 <ProgressSpinner style="width:70px;height:70px;visibility: visible" strokeWidth="8"/>
@@ -41,34 +41,43 @@
         <div class="spin-wrapper" v-else-if="state==2">
             <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="state=1"/>
         </div>
-        <div class="unauthorized" v-else-if="state==3">
-            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
-            <p class="text">
-                <div>Sorry, but you must Accept the Terms and Conditions before you can use this Software.</div>
-            </p>
-        </div>
-        <div class="unauthorized" v-else-if="state==4">
-            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
-            <p class="text">
+        <Card class="error-card" v-else-if="state==3">
+            <template #title><div class="head">NOT ALLOWED</div></template>
+            <template #content><p class="text">
+                <div>Sorry, but you must Accept the Terms and Conditions before you can use this Software.</div>                
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state==4">
+            <template #title><div class="head">NOT ALLOWED</div></template>
+            <template #content><p class="text">
                 <div>Something went wrong authenticating your account or session</div>
-                <div>Please try logging out of Wordpress and logging back in, if that</div>
-                <div>doesn't work please contact technical support: support@madpenguin.uk</div>
-            </p>
-        </div>
-        <div class="unauthorized" v-else-if="state==5">
-            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
-            <p class="text">
+                <div>Please try logging out of Wordpress and logging back in - if that</div>
+                <div>doesn't work, please contact technical support at <b>support@madpenguin.uk</b></div>
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state==5">
+            <template #title><div class="head">NOT ALLOWED</div></template>
+            <template #content><p class="text">
                 <div>Something went wrong authenticating your account or session</div>
                 <div>It looks like the code is trying to load a module from an unauthorized location</div>
-            </p>
-        </div>
-        <div class="unauthorized" v-else-if="state!=0">
-            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
-            <p class="text">
+                <div>Please contact technical support at <b>support@madpenguin.uk</b> or try again later</div>
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state==6">
+            <template #title><div class="head">SERVER ERROR</div></template>
+            <template #content><p class="text">
+                    <div>Something went wrong trying to connect to the server</div>
+                    <div>** It looks like the server may be down or malfunctioning **</div>
+                    <div>Please contact technical support at <b>support@madpenguin.uk</b> or try again later</div>
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state!=0">
+            <template #title><div class="head">NOT ALLOWED</div></template>
+            <template #content><p class="text">
                 <div>Something went wrong authenticating your account or session</div>
-                <div>This looks like a software bug, please report code: {{ state }} to support@madpenguin.uk</div>
-            </p>
-        </div>
+                <div>This looks like a software bug, please report code "<b>{{ state }}</b>" to <b>support@madpenguin.uk</b></div>
+            </p></template>
+        </Card>
         <div class="main-display" v-show="state==0 && !is_disabled">
             <div id="make-me-static-crawler" :style="app_style" />
         </div>
@@ -91,6 +100,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useLogger } from './OrbitLogger.js'
 import TermsAndConditions from "@/components/termsandconditions.vue";
 import ConfirmDialog from 'primevue/confirmdialog';
+import Card from 'primevue/card';
 import Checkbox from 'primevue/checkbox';
 import pkg from '../../package.json';
 //
@@ -296,7 +306,7 @@ function loadCrawler () {
     }
     //
     if (!route.value.url.endsWith('madpenguin.uk')) {
-        state.value = 5
+        state.value = 4
         log.error ('blocked load from: ', route.value.url)
         return
     }
@@ -338,19 +348,28 @@ function loadCrawler () {
     //
     //  This could happen ...
     //
-    script.addEventListener('error', () => {
-        log.error('failed to load:', url)
-    });
+    // script.addEventListener('error', () => {
+    //     log.error('failed to load:', url)
+    // });
     //
     //  Make sure our SCRIPT tag has the right attributes
     //
     script.type="module"
     script.id = "mms-crawler-app";
     script.src = url
+
+    script.onerror = (error) => {
+        log.warning ('Trapped: ', error)
+        state.value = 6
+    }
     //
     //  Add our new TAG containing the mounted APP to the DOM
     //
-    document.body.appendChild(script);
+    try {
+        document.body.appendChild(script);
+    } catch (error) {
+        log.error (error)
+    }
 }
 </script>
 
@@ -409,6 +428,7 @@ export default defineComponent({
     text-align: center;
     font-size: 1.2em;
     font-weight: 500;
+    text-align: center;
 }
 .unauthorized .head {
     margin-top: 10em;
@@ -418,5 +438,22 @@ export default defineComponent({
 .unauthorized .text {
     font-size: 1em;
     color: maroon;
+}
+.error-card {
+    margin:auto;
+    margin-top: 35vh;
+    background-color: #ffd7a8;
+    width: 800px;
+}
+.error-card div.head {
+    padding-top: 1em;
+    text-align: center;
+    color: rgb(121, 0, 46);
+    font-weight: 600;
+}
+.error-card p.text {
+    text-align: center;
+    font-size: 1.1em;
+    color: black;
 }
 </style>
