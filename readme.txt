@@ -164,6 +164,10 @@ the "static" folder in your wordpress directory, so all assets in this folder tr
 
 `define( 'MMS_FOLDER_BLIST', ['wp-content/plugins/my-bad-plugin']);`
 
+= Does this work over HTTP? =
+
+* No. Your site will need at least to have a front-end HTTPS front-end. Always make sure your site address in Settings -> General reflects the HTTPS address you want the plugin to use.
+
 More Detail can be found here ...
 https://madpenguin.uk/make-me-static/
 
