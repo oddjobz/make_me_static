@@ -80,8 +80,11 @@
                                     <div style="margin-top: 1em;font-size: 0.9em">
                                         We need your EMail addreess in order to confirm your identity. We will
                                         send a verification link to this address, please click on this link in 
-                                        this email to access the subscriptions section.
-                                        
+                                        this email to access the subscriptions section.                                        
+                                    </div>
+                                    <div style="margin-top: 1em;font-size: 0.9em">
+                                        Please choose an email address that is most likely to be associated with 
+                                        the payment method you intend to use.
                                     </div>
                                     <div class="flex flex-column gap-2" style="margin-left:4em;margin-right:4em">
                                         <label for="email"><b>EMail Address</b></label>
@@ -113,7 +116,7 @@
                                     </div>
                                 </p>
                                 <div style="flex:1"></div>
-                                <div style="text-align:center" v-if="email_count < 3">
+                                <div style="text-align:center;margin-top:1em" v-if="email_count < 3">
                                     <Button
                                         :disabled="!isEmailValid || !ready_to_email"
                                         :loading="!ready_to_email"
@@ -142,12 +145,18 @@
                 </div>
                 <div v-else>
                     <ul class="products">
-                        <li v-for="(val, key) in products" :key="key" style="flex:1">
-                            <div 
-                                @click="onClickProduct (key)"
-                                :class='key == selected ? "product selected" : "product"'
-                                >
-                                <div><span class="name">{{ key }}</span> <span class="price">({{val.currency}}/month)</span></div>
+                        <li v-for="(val, key) in products" :key="key" style="flex:1" >                            
+                            <div @click="onClickProduct (key)" :class='key == selected ? "product selected" : "product"' v-if="approved">
+                                <div>
+                                    <span class="name">{{ key }}</span>&nbsp;
+                                    <span class="price">({{val.currency}}/month)</span>
+                                </div>
+                            </div>
+                            <div @click="onClickProduct (key)" :class='key == selected ? "product selected" : "product disabled"' v-else>
+                                <div>
+                                    <span class="name">{{ key }}</span>&nbsp;
+                                    <span class="price">({{val.currency}}/month)</span>
+                                </div>
                             </div>
                         </li>
                     </ul>
@@ -177,6 +186,9 @@
                                                     Fees and credits for part month usage will appear pro-rata on your next bill.
                                                     If you downgrade to the free service, your subscription will run to the end of the current billing
                                                     cycle and won't renew.
+                                                </div>
+                                                <div v-if="!approved" class="demo">
+                                                    * Email your site URL and DEMO-745321 to support@madpenguin.uk for a free 7-day trial of "full"
                                                 </div>
                                             </p>
                                             <div style="flex:1"></div>
@@ -336,6 +348,7 @@ const days_since        = computed(() => {
 })
 const wizard_image      = computed(() => pkg.parameters.host + '/wizard.jpeg')
 const isEmailValid      = computed(() => (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.value)))
+const approved          = computed(() => route.value.approved ? true : false )
 
 function onShow () {
     setTimeout(() => {
@@ -530,6 +543,7 @@ function formReset () {
     }
 }
 function onClickProduct (key) {
+    if (!approved.value) return 
     if (selected.value == key) {
         log.warn ('No Change!', selected.value, key)
         return
@@ -596,6 +610,7 @@ export default defineComponent({
     padding-bottom: 0.5em;
     background-color:white;
     text-align: center;
+    max-width: 300px;
 }
 .name {
     text-transform: capitalize;
@@ -622,6 +637,12 @@ ul.products li:not(:nth-child(4)) {
     color: white;
     font-weight: 600;
 }
+.product.disabled {
+    background-color: #eee;
+    color: #666;
+    font-weight: 600;
+    cursor: not-allowed;
+}
 .product.selected .price {
     color: #ddd;
 }
@@ -647,7 +668,7 @@ ul.products li:not(:nth-child(4)) {
     flex:0;
 } 
 .dialog-body {
-    height: 28em;
+    min-height: 28em;
     display:flex;
     flex-direction: column;
 }
@@ -701,6 +722,12 @@ ul.products li:not(:nth-child(4)) {
 }
 .p-invalid {
     color: rgb(163, 18, 91);
+}
+.demo {
+    margin-top: 1em;
+    font-size: 0.7em;
+    font-weight:600;
+    color:rgb(223, 149, 12);
 }
 </style>
 

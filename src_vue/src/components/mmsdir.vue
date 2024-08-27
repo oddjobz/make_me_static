@@ -2,6 +2,13 @@
 <!-- Scoped CSS only, see theme.css and admin.css for globally scoped CSS -->
 
 <template>
+    <div style="text-align:center;position:fixed;bottom:5vh;right:1vh;z-index:9999">
+        <a href="https://support.madpenguin.uk" target="_blank">
+            <img src="https://madpenguin.uk/wp-content/uploads/2024/07/support-logo.png" />
+        </a>
+        <div>Support</div>
+        <div>Forum</div>
+    </div>
     <section class="content mmsdir">
         <ConfirmDialog :closable=false group="confirmtac">
             <template #message="slotProps">
@@ -69,6 +76,14 @@
                     <div>Something went wrong trying to connect to the server</div>
                     <div>** It looks like the server may be down or malfunctioning **</div>
                     <div>Please contact technical support at <b>support@madpenguin.uk</b> or try again later</div>
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state==7">
+            <template #title><div class="head">WORDPRESS CONFIGURATION ISSUE</div></template>
+            <template #content><p class="text">
+                    <div>It looks like Wordpress is running over HTTP rather than HTTPS.</div>
+                    <div>Unfortunatley this Plugin can only work over public HTTPS connecitons.</div>
+                    <div>If your site is running behind a Proxy or VPN, please look at Settings -> General and amend "Site Address" to reflect your public HTTPS address.</div>
             </p></template>
         </Card>
         <Card class="error-card" v-else-if="state!=0">
@@ -224,6 +239,10 @@ function onLoadModule () {
 //
 function registerWithWordpress () {
     if (loaded.value||!auth1.value) return
+    if (!apiurl.value.startsWith('https:')) {
+        state.value = 7
+        return
+    }
     const url = new URL(apiurl.value + 'make_me_static/v1/register_host');
     url.searchParams.set('host_id', connection.hostid);
     url.searchParams.set('site', window.MMS_API_Settings.uuid);
