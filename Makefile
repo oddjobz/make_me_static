@@ -32,7 +32,8 @@ build_base:
 	@mkdir -p ${BUILD}
 	@cp readme.txt ${BUILD}
 	@cp LICENSE ${BUILD}
-	@cp README.md ${BUILD}
+	@mkdir -p ${BUILD}/assets
+	@cp images/mms.jpeg ${BUILD}/assets/screenshot-1.jpeg
 
 build_php:
 #
@@ -40,6 +41,7 @@ build_php:
 #
 	@cp ${PHPSRC}/index.php ${BUILD}
 	@cp ${PHPSRC}/make-me-static.php ${BUILD}
+	@cp ${PHPSRC}/../composer.json ${BUILD}
 	@cp -ra ${PHPSRC}/admin ${BUILD}
 	@cp -ra ${PHPSRC}/public ${BUILD}
 	@cp -ra ${PHPSRC}/languages ${BUILD}
