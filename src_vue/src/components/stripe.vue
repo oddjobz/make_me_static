@@ -199,11 +199,13 @@
                                             Account Email: <span style="color:teal;font-weight:500">{{ route.email_address }}</span>
                                         </p>
                                         <p class="m-0 card-text" style="flex:1">
-                                            <div v-if="!has_autorenew" class="revert">
-                                                This service has been cancelled and will revert to a free subscription in <b>{{ days_remaining }}</b> days.
+                                            <div class="revert">
+                                                <span v-if="!has_autorenew">
+                                                    This service has been cancelled and will revert to a free subscription in <b>{{ days_remaining }}</b> days.
+                                                </span>
                                             </div>
                                         </p>
-                                        <div style="text-align:center" v-if="has_subscription && has_autorenew">
+                                        <div style="text-align:center;flex:0" v-if="has_subscription && has_autorenew">
                                             <Button
                                                 style="width:15em"
                                                 class="p-button" 
@@ -238,30 +240,28 @@
                                         You are currently subscribed to the <span class="caption-class"> {{ current_plan }}</span> plan
                                     </template>
                                     <template #content v-if="has_autorenew">
-                                        <div class="dialog-content">
-                                            <p class="m-0 card-text">
-                                                You are currently subscribed to the <b>{{ current_plan }}</b> plan which is billed at <b>{{ current_price }}</b>
-                                                per month. If you select this option your subscription will be changed to the <b>{{ new_plan }}</b> plan 
-                                                <span v-if="selected == 'free'">
-                                                    at the end of the current billing cycle in <b>{{ days_remaining }}</b> days time.
-                                                </span>
-                                                <span v-else>
-                                                    which is billed at <b>{{ new_price }}</b> per month. Note that your bill for the next billing cycle will be at
-                                                    the new rate and will include a one-off pro-rata for <b>{{ days_remaining }}</b> days of the current bulling period at 
-                                                    the new rate.
-                                                </span>
-                                            </p>
-                                            <div style="flex:1"></div>
-                                            <div style="text-align:center">
-                                                <Button
-                                                    style="width:15em"
-                                                    class="p-button" 
-                                                    severity="help" 
-                                                    icon="pi pi-user-edit" 
-                                                    label="Change Subscription"
-                                                    @click="onClickChange">
-                                                </Button>
-                                            </div>
+                                        <p class="m-0 card-text" style="margin-bottom:1em">
+                                            You are currently subscribed to the <b>{{ current_plan }}</b> plan which is billed at <b>{{ current_price }}</b>
+                                            per month. If you select this option your subscription will be changed to the <b>{{ new_plan }}</b> plan 
+                                            <span v-if="selected == 'free'">
+                                                at the end of the current billing cycle in <b>{{ days_remaining }}</b> days time.
+                                            </span>
+                                            <span v-else>
+                                                which is billed at <b>{{ new_price }}</b> per month. Note that your bill for the next billing cycle will be at
+                                                the new rate and will include a one-off pro-rata for <b>{{ days_remaining }}</b> days of the current bulling period at 
+                                                the new rate.
+                                            </span>
+                                        </p>
+                                        <div style="flex:1">&nbsp;</div>
+                                        <div style="text-align:center">
+                                            <Button
+                                                style="width:15em"
+                                                class="p-button" 
+                                                severity="help" 
+                                                icon="pi pi-user-edit" 
+                                                label="Change Subscription"
+                                                @click="onClickChange">
+                                            </Button>
                                         </div>
                                     </template>
                                 </Card>
@@ -675,7 +675,7 @@ ul.products li:not(:nth-child(4)) {
 .dialog-content {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex:1;
 }
 .caption-class {
     text-transform: uppercase;
@@ -705,6 +705,7 @@ ul.products li:not(:nth-child(4)) {
 }
 .revert {
     margin-top: 2em;
+    margin-bottom: 1em;
     text-align: center;
     color:rgb(206, 32, 76);
     font-size: 1.1em;
@@ -741,6 +742,8 @@ ul.products li:not(:nth-child(4)) {
 }
 .subscription-dialog .p-card-content {
     flex:1;
+    display: flex;
+    flex-direction: column
 }
 .subscription-dialog .p-card-body {
     display:flex;
