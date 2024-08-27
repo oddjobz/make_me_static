@@ -5,15 +5,56 @@
  -->
 <template>
   <orbit-i-o />
-  <orbit-dir />
+    <router-view v-slot="{ Component }">
+        <keep-alive>
+            <component :is="Component" :key="$route.fullPath"/>
+        </keep-alive>
+    </router-view>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
+<script setup>
+import { defineComponent, onMounted, ref, computed, inject, watch } from 'vue';
+import { RouterView } from 'vue-router';
 import { OrbitIO } from 'orbit-component-base';
-import OrbitDir from '@/components/mmsdir.vue'
+import { useRouter } from 'vue-router';
+import { useLogger } from '@/components/OrbitLogger.js';
+//
+const connection    = inject('$connection')
+//
+//
+//
+const vrouter       = useRouter()
+const log           = useLogger()
+const root          = computed(() => vrouter.currentRoute.value.meta.root)
+//
+//  RouteStore
+//
+import { useRouteStore } from '@/stores/routeStore.js';
+const routeStore    = useRouteStore(window.pinia);
+const route_data    = computed(() => routeStore.data)
+const route_ids     = computed(() => routeStore.ids(root.value))
+const route         = computed(() => route_ids.value.length ? route_data.value.get(route_ids.value[0]) : null)
 
-export default defineComponent({
-  components: {OrbitIO, OrbitDir}
+onMounted(async () => {
+    await vrouter.isReady()
+    window.addEventListener('MMS_CHANGE_PATH', (payload) => {
+        vrouter.push({path: payload.detail})
+    })
+})
+watch (route, (curr, prev) => {
+    window.dispatchEvent(new CustomEvent('MMS_NEW_ROUTE', {detail: route.value}))
 })
 </script>
+
+<script>
+export default defineComponent({
+
+})
+</script>
+
+<style lang="scss">
+@import 'primevue/resources/primevue.min.css';
+@import '@/includes/primeicons.css';
+@import "primeflex/primeflex.css";
+</style>
+

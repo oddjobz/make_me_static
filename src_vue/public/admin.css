@@ -25,6 +25,7 @@ div#wpbody-content {
 }
 div.mm-static-main {
     height: 100%;
+    display: flow-root;
 }
 div#make-me-static-directory {
     height: 100%;

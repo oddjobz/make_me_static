@@ -2,6 +2,13 @@
 <!-- Scoped CSS only, see theme.css and admin.css for globally scoped CSS -->
 
 <template>
+    <div style="text-align:center;position:fixed;bottom:5vh;right:1vh;z-index:9999">
+        <a href="https://support.madpenguin.uk" target="_blank">
+            <img src="https://madpenguin.uk/wp-content/uploads/2024/07/support-logo.png" />
+        </a>
+        <div>Support</div>
+        <div>Forum</div>
+    </div>
     <section class="content mmsdir">
         <ConfirmDialog :closable=false group="confirmtac">
             <template #message="slotProps">
@@ -25,7 +32,14 @@
                 </div>
             </template>
         </ConfirmDialog>
-        <div class="spin-wrapper" v-if="state==1">
+        <Card class="error-card" v-if="is_disabled">
+            <template #title><div class="head">ACCOUNT DISABLED</div></template>
+            <template #content><p class="text">
+                <div>Sorry, this account has been disabled. Please contact <b><a href="https://support.madpenguin.uk">Mad Penguin Support</a></b></div>
+                <div>Or Email us at <b><a href="mailto:support@madpenguin.uk">Support@MadPenguin.uk</a></b></div>
+            </p></template>
+        </Card>
+        <div class="spin-wrapper" v-else-if="state==1">
             <div class="spinner">
                 <ProgressSpinner style="width:70px;height:70px;visibility: visible" strokeWidth="8"/>
                 <div class="loading">L O A D I N G ...</div>
@@ -34,47 +48,74 @@
         <div class="spin-wrapper" v-else-if="state==2">
             <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="loadCrawler()"/>
         </div>
-        <div class="unauthorized" v-else-if="state==3">
-            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
-            <p class="text">
-                <div>Sorry, but you must Accept the Terms and Conditions before you can use this Software.</div>
-            </p>
-        </div>
-        <div class="unauthorized" v-else-if="state==4">
-            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
-            <p class="text">
+        <Card class="error-card" v-else-if="state==3">
+            <template #title><div class="head">NOT ALLOWED</div></template>
+            <template #content><p class="text">
+                <div>Sorry, but you must Accept the Terms and Conditions before you can use this Software.</div>                
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state==4">
+            <template #title><div class="head">NOT ALLOWED</div></template>
+            <template #content><p class="text">
                 <div>Something went wrong authenticating your account or session</div>
-                <div>Please try logging out of Wordpress and logging back in, if that</div>
-                <div>doesn't work please contact technical support: support@madpenguin.uk</div>
-            </p>
-        </div>
-        <div class="unauthorized" v-else-if="state==5">
-            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
-            <p class="text">
+                <div>Please try logging out of Wordpress and logging back in - if that</div>
+                <div>doesn't work, please contact technical support at <b>support@madpenguin.uk</b></div>
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state==5">
+            <template #title><div class="head">NOT ALLOWED</div></template>
+            <template #content><p class="text">
                 <div>Something went wrong authenticating your account or session</div>
                 <div>It looks like the code is trying to load a module from an unauthorized location</div>
-            </p>
-        </div>
-        <div class="unauthorized" v-else-if="state!=0">
-            <div class="head">N O T &nbsp;&nbsp;&nbsp; A L L O W E D</div>
-            <p class="text">
+                <div>Please contact technical support at <b>support@madpenguin.uk</b> or try again later</div>
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state==6">
+            <template #title><div class="head">SERVER ERROR</div></template>
+            <template #content><p class="text">
+                    <div>Something went wrong trying to connect to the server</div>
+                    <div>** It looks like the server may be down or malfunctioning **</div>
+                    <div>Please contact technical support at <b>support@madpenguin.uk</b> or try again later</div>
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state==7">
+            <template #title><div class="head">WORDPRESS CONFIGURATION ISSUE</div></template>
+            <template #content><p class="text">
+                    <div>It looks like Wordpress is running over HTTP rather than HTTPS.</div>
+                    <div>Unfortunatley this Plugin can only work over public HTTPS connecitons.</div>
+                    <div>If your site is running behind a Proxy or VPN, please look at Settings -> General and amend "Site Address" to reflect your public HTTPS address.</div>
+            </p></template>
+        </Card>
+        <Card class="error-card" v-else-if="state!=0">
+            <template #title><div class="head">NOT ALLOWED</div></template>
+            <template #content><p class="text">
                 <div>Something went wrong authenticating your account or session</div>
-                <div>This looks like a software bug, please report code: {{ state }} to support@madpenguin.uk</div>
-            </p>
-        </div>
-        <div class="main-display" v-show="state==0">
+                <div>This looks like a software bug, please report code "<b>{{ state }}</b>" to <b>support@madpenguin.uk</b></div>
+            </p></template>
+        </Card>
+        <div class="main-display" v-show="state==0 && !is_disabled">
             <div id="make-me-static-crawler" :style="app_style" />
         </div>
     </section>
 </template>
 
 <script setup>
+//
+//  Allowed States
+//  0. Catch all - normal operation
+//  1. Loading (display loading message)
+//  2. Terms and Conditions (need to be confirmed)
+//  3. Rejected (Display if terms not accepted)
+//  4. Unauthorized, error on account
+//  5. Unauthorized, loading from unauthorized location
+
 import ProgressSpinner from 'primevue/progressspinner';
 import { defineComponent, ref, watch, computed, inject, onMounted, toRaw, readonly } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLogger } from './OrbitLogger.js'
 import TermsAndConditions from "@/components/termsandconditions.vue";
 import ConfirmDialog from 'primevue/confirmdialog';
+import Card from 'primevue/card';
 import Checkbox from 'primevue/checkbox';
 import pkg from '../../package.json';
 //
@@ -96,6 +137,8 @@ const vrouter       = useRouter()
 const plugin        = inject('$orbitPlugin')
 const connection    = inject('$connection')
 const socket        = ref({connected:false})
+const active        = computed(() => socket.value.connected)
+const authenticated = computed(() => connection.authenticated)
 //
 //  Application Specific
 //
@@ -105,7 +148,9 @@ const have_app      = ref(false)
 const have_route    = ref(false)
 const unauthorized  = ref(false)
 const checked       = ref(false)
-const root          = computed(() => opt && opt.router ? opt.router.currentRoute.value.meta.root : null)
+const root          = computed(() => {
+    return opt && opt.router ? opt.router.currentRoute.value.meta.root : null
+})
 const app_style     = computed(() => have_app.value ? "height:100%;width:100%" : "height:0;width:0")
 const auth1         = computed(() => connection.authenticated)
 const auth2         = ref(false)
@@ -115,13 +160,14 @@ const apiurl        = ref(window.MMS_API_Settings.apiurl)
 const nonce         = ref(null)
 const log           = useLogger()
 const crawler_app   = ref(null)
+const is_disabled   = computed(() => route.value ? route.value.disabled : false)
 //
 //  Wait for the Vue Router to come ready
 //
 onMounted(async () => {
-    log.debug ('Loading directory service: ', pkg.version)
     nonce.value = window.MMS_API_Settings.nonce
     await vrouter.isReady()
+    if (auth1.value) registerWithWordpress()
 })
 //
 //  The value of "route" here is reactive and comes from the directory server. However
@@ -147,31 +193,56 @@ watch (auth1, () => {
 watch (auth2, () => {
     loadRoute()
 })
+watch (vroute, (curr) => {
+    if (curr.path == '/' && !crawler_app.value) {
+        onLoadModule()
+    }
+})
 //
 //  watch route - this will tell us which MMS crawler service to connect to. This may change
 //  dynamically if a license changes or a server is under excessive load. License changes are UI
 //  reactivel, but a crawler change required loading the UI module for that specific crawler, as
 //  crawlers may deploy different versions of the software.
 //
-watch (route, (curr, prev) => {
-    if (!prev || (curr.url != prev.url)) {
+watch (route, () => {
+    //
+    //  If we've accepted the terms and conditions, then load the crawler
+    //  otherwise, go to the unauthorized page
+    //
+    if (route.value) {
+        if (route.value.answer) {
+            if (vrouter.currentRoute.value.fullPath == '/' && !crawler_app.value) loadCrawler ();
+            else state.value = 0;
+        } else state.value = 2
         //
-        //  If we've accepted the terms and conditions, then load the crawler
-        //  otherwise, go to the unauthorized page
+        //  Pass the route object on to the VUE loaded crawler
         //
-        if (route.value.answer) loadCrawler (); else state.value = 2
+        emitRoute()
     }
-    //
-    //  Pass the route object on to the VUE loaded crawler
-    //
-    emitRoute()
 })
+
+function onLoadModule () {
+    //
+    //  This is what kicks off a load event when we come to the crawler page
+    //
+    log.debug ('onLoadModule')
+    if (!active.value) return log.debug ('not Active')           // socket is not active yet
+    if (!authenticated.value) return log.debug ('not Auth')     // we're not authenticated yet
+    log.debug ('Socket is: ', socket.value)
+    registerWithWordpress ()
+}
+
+
 //
 //  Register our host_id with Wordpress so the MMS service can validate
 //  this host_id is allowed to scan the site.
 //
 function registerWithWordpress () {
     if (loaded.value||!auth1.value) return
+    if (!apiurl.value.startsWith('https:')) {
+        state.value = 7
+        return
+    }
     const url = new URL(apiurl.value + 'make_me_static/v1/register_host');
     url.searchParams.set('host_id', connection.hostid);
     url.searchParams.set('site', window.MMS_API_Settings.uuid);
@@ -188,7 +259,8 @@ function registerWithWordpress () {
                 //
                 window.MMS_API_Settings.host_id = connection.hostid
                 let app = await plugin (opt, namespace, socket);
-                app.events.authenticated = () => auth2.value = true
+                if (socket.value.connected) loadRoute ()
+                else app.events.authenticated = () => auth2.value = true
                 break;
             default:
                 log.error('Access Denied trying to register with Wordpress => ', response.status)
@@ -205,16 +277,19 @@ function registerWithWordpress () {
 //  so if it fails, we're not allowed to do this.
 //
 function loadRoute () {
-    let store = routeStore.init(app, root.value, socket.value)
-    store.populate(root.value, (response) => {
-        log.warn("Response>", response)
-        if (!response || !response.ok || !route_ids.value.length) {
-            log.error ("failed to populate routeStore", response)
-            unauthorized.value = true
-            return
-        }
-        have_route.value = true
-    })    
+    if (!route_ids.value.length) {
+        let store = routeStore.init(app, root.value, socket.value)
+        store.populate(root.value, (response) => {
+            if (!response || !response.ok || !route_ids.value.length) {
+                log.error ("failed to populate routeStore", response)
+                unauthorized.value = true
+                return
+            }
+            have_route.value = true
+        })
+    } else {
+        loadCrawler()
+    }
 }
 //
 //  loadCrawler - load up the current version of the crawler UI from the
@@ -250,7 +325,7 @@ function loadCrawler () {
     }
     //
     if (!route.value.url.endsWith('madpenguin.uk')) {
-        state.value = 5
+        state.value = 4
         log.error ('blocked load from: ', route.value.url)
         return
     }
@@ -296,19 +371,28 @@ function loadCrawler () {
     //
     //  This could happen ...
     //
-    script.addEventListener('error', () => {
-        log.error('failed to load:', url)
-    });
+    // script.addEventListener('error', () => {
+    //     log.error('failed to load:', url)
+    // });
     //
     //  Make sure our SCRIPT tag has the right attributes
     //
     script.type="module"
     script.id = "mms-crawler-app";
     script.src = url
+
+    script.onerror = (error) => {
+        log.warning ('Trapped: ', error)
+        state.value = 6
+    }
     //
     //  Add our new TAG containing the mounted APP to the DOM
     //
-    document.body.appendChild(script);
+    try {
+        document.body.appendChild(script);
+    } catch (error) {
+        log.error (error)
+    }
 }
 </script>
 
@@ -340,13 +424,13 @@ export default defineComponent({
 .mmsdir {
     height:100%;
 }
-.spin-wrapper {
-    height: calc(100vh - 64px);
-    width:100%;
-}
 .main-display {
     width:100%;
     height: 100%;
+}
+.spin-wrapper {
+    height: calc(100vh - 64px);
+    width:100%;
 }
 .spinner {
     text-align: center;
@@ -367,13 +451,32 @@ export default defineComponent({
     text-align: center;
     font-size: 1.2em;
     font-weight: 500;
+    text-align: center;
 }
 .unauthorized .head {
+    margin-top: 10em;
     font-size: 2em;
     font-weight: 800;
 }
 .unauthorized .text {
     font-size: 1em;
     color: maroon;
+}
+.error-card {
+    margin:auto;
+    margin-top: 35vh;
+    background-color: #ffd7a8;
+    width: 800px;
+}
+.error-card div.head {
+    padding-top: 1em;
+    text-align: center;
+    color: rgb(121, 0, 46);
+    font-weight: 600;
+}
+.error-card p.text {
+    text-align: center;
+    font-size: 1.1em;
+    color: black;
 }
 </style>
