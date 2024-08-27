@@ -32,7 +32,8 @@ build_base:
 	@mkdir -p ${BUILD}
 	@cp readme.txt ${BUILD}
 	@cp LICENSE ${BUILD}
-	@cp README.md ${BUILD}
+	@mkdir -p ${BUILD}/assets
+	@cp images/mms.jpeg ${BUILD}/assets/screenshot-1.jpeg
 
 build_php:
 #

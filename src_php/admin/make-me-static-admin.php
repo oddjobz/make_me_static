@@ -58,7 +58,7 @@ class make_me_static_Admin {
 	 *  
 	 */
 
-	private $directory = 'https://mms-directory-dev.madpenguin.uk/';
+	private $directory = 'https://mms-directory-2.madpenguin.uk/';
 
 	/**
 	 * Initialize the class and set its properties.

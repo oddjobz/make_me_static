@@ -46,7 +46,7 @@
             </div>
         </div>
         <div class="spin-wrapper" v-else-if="state==2">
-            <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="state=1"/>
+            <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="loadCrawler()"/>
         </div>
         <Card class="error-card" v-else-if="state==3">
             <template #title><div class="head">NOT ALLOWED</div></template>
@@ -335,6 +335,10 @@ function loadCrawler () {
     //  in DEV mode, otherwise it will be a minified asset.
     //
     const url = new URL(route.value.url);
+
+    log.error("Settings>", window.MMS_API_Settings)
+
+
     url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
     //
     //  This is our (very simple but effective) loader
