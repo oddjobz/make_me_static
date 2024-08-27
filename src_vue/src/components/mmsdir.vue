@@ -184,6 +184,7 @@ const emitRoute = () => {
 //  doesn't expose anything that's not already public.
 //
 watch (auth1, () => {
+    log.warn ('Event: Auth1')
     registerWithWordpress()
 })
 //  watch auth2 - this happens when we make a virtual connection to the directory application
@@ -191,13 +192,16 @@ watch (auth1, () => {
 //  do just that, grab our route object.
 //
 watch (auth2, () => {
+    log.warn ('Event: Auth2')
     loadRoute()
 })
+
 watch (vroute, (curr) => {
     if (curr.path == '/' && !crawler_app.value) {
         onLoadModule()
     }
 })
+
 //
 //  watch route - this will tell us which MMS crawler service to connect to. This may change
 //  dynamically if a license changes or a server is under excessive load. License changes are UI

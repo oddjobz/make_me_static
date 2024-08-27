@@ -16,12 +16,11 @@
 import { defineComponent, onMounted, ref, computed, inject, watch } from 'vue';
 import { RouterView } from 'vue-router';
 import { OrbitIO } from 'orbit-component-base';
+//
+//
+//
 import { useRouter } from 'vue-router';
 import { useLogger } from '@/components/OrbitLogger.js';
-//
-const connection    = inject('$connection')
-//
-//
 //
 const vrouter       = useRouter()
 const log           = useLogger()

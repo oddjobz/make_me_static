@@ -34,7 +34,6 @@
                     class="p-dialog-header-icon" type="button" icon="pi pi-times-circle" severity="primary" @click="onHide" size="large"></Button>
                 </div>
             </template>
-
             <ConfirmDialog group="templating">
                 <template #message="slotProps">
                     <div class="flex flex-col items-center w-full gap-4 border-b border-surface-200 dark:border-surface-700">
@@ -43,7 +42,6 @@
                     </div>
                 </template>
             </ConfirmDialog>
-
             <ConfirmDialog group="okbox" class="okbox">
                 <template #message="slotProps">
                     <div class="flex flex-col items-center w-full gap-4 border-b border-surface-200 dark:border-surface-700">
@@ -52,7 +50,6 @@
                     </div>
                 </template>
             </ConfirmDialog>
-
             <div v-show="loading" style="width:100%;height: 527px;display:flex" class="justify-center">
                 <div class="spin-wrapper" v-if="!error">
                     <div class="spinner">
@@ -67,7 +64,6 @@
                     </div>
                 </div>
             </div>
-
             <div v-show="!loading && visible">
                 <div v-if="!verified">
                     <Card class="dialog-body">
@@ -328,6 +324,7 @@ const email_ref         = ref('')
 const email_change      = ref(false)
 const route             = computed(() => route_data.value.get(route_ids.value[0]))
 const changed           = computed(() => current_prod.value && selected.value ? current_prod.value != selected.value : false)
+
 const new_plan          = computed(() => selected.value)
 const new_price         = computed(() => selected.value in products.value ? products.value[selected.value].currency : '')
 const current_plan      = computed(() => route.value ? route.value.plan : '')
@@ -393,6 +390,7 @@ watch (current_plan, (value) => {
     selected.value = value
 })
 watch (socket, () => {
+
     loadProducts()
 })
 watch (authenticated, () => {
@@ -477,6 +475,7 @@ function onClickChange () {
         }
     });
 }
+
 function onClickReinstate () {
     log.info('Reinstate Subscription')
     let message = '<div style="padding-left: 1em;padding-right:1em;max-width:550px">'+
@@ -535,6 +534,7 @@ async function onClickChangePayment () {
     checkout.value = await stripe.initEmbeddedCheckout({fetchClientSecret, onComplete: onFormComplete})
     checkout.value.mount( '#checkout' )
 }
+
 function formReset () {
     if (checkout.value) {
         checkout.value.unmount( '#checkout')
