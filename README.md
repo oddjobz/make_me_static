@@ -159,3 +159,5 @@ Wordpress so the security footprint of the plugin is tiny.
 
 More Detail can be found here ...
 https://madpenguin.uk/make-me-static/
+
+MR
