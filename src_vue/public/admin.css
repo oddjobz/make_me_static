@@ -348,6 +348,12 @@ body {
    -moz-osx-font-smoothing: grayscale;
  }
  
+input[type=checkbox], input[type=radio] {
+    width: 100%!important;
+    height: 100%!important;
+    margin: 0!important;
+}
+
  ::-webkit-scrollbar-thumb {
    background-color: #80d4ff;
    border-radius: 10px;

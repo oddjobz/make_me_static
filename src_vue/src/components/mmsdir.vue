@@ -46,7 +46,8 @@
             </div>
         </div>
         <div class="spin-wrapper" v-else-if="state==2">
-            <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="loadCrawler()"/>
+            <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" />
+            <!-- @terms-accepted="loadCrawler()" -->
         </div>
         <Card class="error-card" v-else-if="state==3">
             <template #title><div class="head">NOT ALLOWED</div></template>
@@ -184,7 +185,6 @@ const emitRoute = () => {
 //  doesn't expose anything that's not already public.
 //
 watch (auth1, () => {
-    log.warn ('Event: Auth1')
     registerWithWordpress()
 })
 //  watch auth2 - this happens when we make a virtual connection to the directory application
@@ -192,7 +192,6 @@ watch (auth1, () => {
 //  do just that, grab our route object.
 //
 watch (auth2, () => {
-    log.warn ('Event: Auth2')
     loadRoute()
 })
 
@@ -208,14 +207,16 @@ watch (vroute, (curr) => {
 //  reactivel, but a crawler change required loading the UI module for that specific crawler, as
 //  crawlers may deploy different versions of the software.
 //
-watch (route, () => {
+watch (route, (curr, prev) => {
     //
     //  If we've accepted the terms and conditions, then load the crawler
     //  otherwise, go to the unauthorized page
     //
     if (route.value) {
         if (route.value.answer) {
-            if (vrouter.currentRoute.value.fullPath == '/' && !crawler_app.value) loadCrawler ();
+            if ((vrouter.currentRoute.value.fullPath == '/') &&  (!prev||(curr.url != prev.url))) {
+                loadCrawler ();
+            }
             else state.value = 0;
         } else state.value = 2
         //
@@ -339,10 +340,6 @@ function loadCrawler () {
     //  in DEV mode, otherwise it will be a minified asset.
     //
     const url = new URL(route.value.url);
-
-    log.error("Settings>", window.MMS_API_Settings)
-
-
     url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
     //
     //  This is our (very simple but effective) loader
@@ -382,7 +379,7 @@ function loadCrawler () {
     //  Make sure our SCRIPT tag has the right attributes
     //
     script.type="module"
-    script.id = "mms-crawler-app";
+    script.id = "make-me-static-crawler-app";
     script.src = url
 
     script.onerror = (error) => {
