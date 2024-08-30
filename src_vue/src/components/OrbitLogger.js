@@ -4,6 +4,8 @@ const c_info = 'color:white;font-weight:600;background-color:slateblue;padding:3
 const c_warn = 'color:black;font-weight:600;background-color:orange;padding:3px;border-radius:4px;margin-right:4px;padding-left:1em;padding-right:1em'
 const c_error = 'color:black;font-weight:600;background-color:crimson;padding:3px;border-radius:4px;margin-right:4px;padding-left:1em;padding-right:1em'
 
+const debug = false
+
 class OrbitLogger {
 
     prefix () {
@@ -15,7 +17,8 @@ class OrbitLogger {
         return frames[index]
     }
     debug (...args) {
-        console.debug ('%c%s %c%s', c_time, this.prefix(), c_debug, 'DEBUG', ...args, this.postfix())
+        if (debug)
+            console.debug ('%c%s %c%s', c_time, this.prefix(), c_debug, 'DEBUG', ...args, this.postfix())
     }
     info (...args) {
         console.info ('%c%s %c%s', c_time, this.prefix(), c_info, 'INFO', ...args, this.postfix())

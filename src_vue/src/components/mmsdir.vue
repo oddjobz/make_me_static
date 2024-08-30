@@ -46,8 +46,7 @@
             </div>
         </div>
         <div class="spin-wrapper" v-else-if="state==2">
-            <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" />
-            <!-- @terms-accepted="loadCrawler()" -->
+            <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="loadCrawler()" />
         </div>
         <Card class="error-card" v-else-if="state==3">
             <template #title><div class="head">NOT ALLOWED</div></template>
@@ -184,6 +183,11 @@ const emitRoute = () => {
 //  so we need to register the connection with Wordpress. This is a form of Nonce which
 //  doesn't expose anything that's not already public.
 //
+// watch (state, () => {
+//     log.warn (`State set to ${state.value}`)
+// })
+
+
 watch (auth1, () => {
     registerWithWordpress()
 })
@@ -217,7 +221,7 @@ watch (route, (curr, prev) => {
             if ((vrouter.currentRoute.value.fullPath == '/') &&  (!prev||(curr.url != prev.url))) {
                 loadCrawler ();
             }
-            else state.value = 0;
+            // else state.value = 0;
         } else state.value = 2
         //
         //  Pass the route object on to the VUE loaded crawler
@@ -361,9 +365,9 @@ function loadCrawler () {
         crawler_app.value.mount('#make-me-static-crawler')
         have_app.value = true;
         //
-        //  Cleat the spinner
+        //  Clear the spinner
         //
-        state.value = 0;
+        setTimeout (() => { state.value = 0 }, 1500)
         //
         //  Pass the current "route" info to the APP
         //
