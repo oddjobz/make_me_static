@@ -193,7 +193,12 @@ class make_me_static_api {
 		//	Make sure host_id is available and update it's stamp if it already exists
 		//
 		$this->update_metadata ( sanitize_text_field($request->get_param( 'host_id' )));
-		return new WP_REST_Response( array( 'message' => 'Ok, session registered' ), 200);
+		//
+		//	Also check the permalink structure is ok
+		//
+		$permalink_structure = get_option( 'permalink_structure' );
+		//
+		return new WP_REST_Response( array( 'message' => 'Ok, session registered', 'permalink' => empty($permalink_structure) ? 'plain' : 'ok' ), 200);
 	}
 
 	/**

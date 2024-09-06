@@ -86,6 +86,29 @@
                     <div>If your site is running behind a Proxy or VPN, please look at Settings -> General and amend "Site Address" to reflect your public HTTPS address.</div>
             </p></template>
         </Card>
+        <Card class="error-card" v-else-if="state==8">
+            <template #title><div class="head">COMMUNICATION ISSUE</div></template>
+            <template #content>
+                <div>
+                    <p class="text">We're having problems connecting to your server, please make sure;</p>
+                    <ul style="list-style-type: square;margin-left: 7em">
+                        <li>nothing is interfering with "query strings" on your server</li>
+                        <li>Your Wordpress JSON API is enabled</li>
+                    </ul>
+                </div>
+                <p class="text">If you visit our <a href="https://support.madpenguin.uk" target="_blank">Support Forums</a> someone will be happy to help diagnose the problem</p>
+            </template>
+        </Card> 
+        <Card class="error-card" v-else-if="state==9">
+            <template #title><div class="head">PERMALINKS NOT CONFIGURED</div></template>
+            <template #content>
+                <div>
+                    <p class="text">It looks like your "permalink structure" is set to "plain"</p>
+                    <p class="text">This structure does not play well with search engines or static sites, please <br/><a href="/wp-admin/options-permalink.php">choose another</a> from the setings page, then revisit this page</p>
+                    <p class="text">If you visit our <a href="https://support.madpenguin.uk" target="_blank">Support Forums</a> someone will be happy to help diagnose the problem</p>
+                </div>
+            </template>
+        </Card>                
         <Card class="error-card" v-else-if="state!=0">
             <template #title><div class="head">NOT ALLOWED</div></template>
             <template #content><p class="text">
@@ -100,14 +123,6 @@
 </template>
 
 <script setup>
-//
-//  Allowed States
-//  0. Catch all - normal operation
-//  1. Loading (display loading message)
-//  2. Terms and Conditions (need to be confirmed)
-//  3. Rejected (Display if terms not accepted)
-//  4. Unauthorized, error on account
-//  5. Unauthorized, loading from unauthorized location
 
 import ProgressSpinner from 'primevue/progressspinner';
 import { defineComponent, ref, watch, computed, inject, onMounted, toRaw, readonly } from 'vue';
@@ -122,7 +137,7 @@ import pkg from '../../package.json';
 //  RouteStore
 //
 import { useRouteStore } from '@/stores/routeStore.js';
-const routeStore = useRouteStore(window.pinia);
+const routeStore    = useRouteStore(window.pinia);
 const route_data    = computed(() => routeStore.data)
 const route_ids     = computed(() => routeStore.ids(root.value))
 const route         = computed(() => route_ids.value.length ? route_data.value.get(route_ids.value[0]) : null)
@@ -226,7 +241,7 @@ watch (route, (curr, prev) => {
         //
         //  Pass the route object on to the VUE loaded crawler
         //
-        emitRoute()
+        // emitRoute()
     }
 })
 
@@ -246,7 +261,7 @@ function onLoadModule () {
 //  Register our host_id with Wordpress so the MMS service can validate
 //  this host_id is allowed to scan the site.
 //
-function registerWithWordpress () {
+async function registerWithWordpress () {
     if (loaded.value||!auth1.value) return
     if (!apiurl.value.startsWith('https:')) {
         state.value = 7
@@ -259,26 +274,28 @@ function registerWithWordpress () {
     //  We're passing our own UUID (essentially a password) together with our own
     //  host_id (which is our PKI secured token) to the WP JSON API. (secured by a Nonce)
     //
-    fetch(url.href, {method: 'GET', headers: {'X-WP-Nonce': nonce.value}})
-    .then (async (response) => {
-        switch (response.status) {
-            case 200:
-                //
-                //  We're good, make the APP connection and flag "auth2"
-                //
-                window.MMS_API_Settings.host_id = connection.hostid
-                let app = await plugin (opt, namespace, socket);
-                if (socket.value.connected) loadRoute ()
-                else app.events.authenticated = () => auth2.value = true
-                break;
-            default:
-                log.error('Access Denied trying to register with Wordpress => ', response.status)
-                state.value = 4;
-        }
-    })
-    .catch ((error) => {
-        log.error(error)
-    })
+    let response = await fetch(url.href, {method: 'GET', headers: {'X-WP-Nonce': nonce.value}})
+    if (!response.ok) {
+        log.error ('Error Calling WordPress API')
+        state.value = 9
+        return
+    }
+    if (response.status != 200) {
+        log.error('Access Denied trying to register with Wordpress => ', response.status)
+        state.value = 4
+        return
+    }
+    response = await response.json()
+    if (response.permalink == 'plain') {
+        log.error("Bad permalink structure, we can't work with 'plain'")
+        state.value = 9
+        return
+    }
+    log.info (response.message)
+    window.MMS_API_Settings.host_id = connection.hostid
+    let app = await plugin (opt, namespace, socket);
+    if (socket.value.connected) loadRoute ()
+    else app.events.authenticated = () => auth2.value = true
 }
 //
 //  loadRoute - attempt to populate the routeStore cache, assuming this works
@@ -292,6 +309,7 @@ function loadRoute () {
             if (!response || !response.ok || !route_ids.value.length) {
                 log.error ("failed to populate routeStore", response)
                 unauthorized.value = true
+                state.value = 8
                 return
             }
             have_route.value = true
@@ -367,7 +385,9 @@ function loadCrawler () {
         //
         //  Clear the spinner
         //
-        setTimeout (() => { state.value = 0 }, 1500)
+        setTimeout (() => { 
+            state.value = 0 
+        }, 1500)
         //
         //  Pass the current "route" info to the APP
         //

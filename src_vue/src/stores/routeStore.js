@@ -25,7 +25,7 @@ export const useRouteStore = defineStore('routeStore', {
                 make_me_static: this.mms
             }
             this.query(params,(response) => {
-                if (!response || !response.ok) throw new Error(response ? response.error : `no query: ${method}`)
+                // if (!response || !response.ok) throw new Error(response ? response.error : `no query: ${method}`)
                 if (callback) callback(response)
             })
             return this
