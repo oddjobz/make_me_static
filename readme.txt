@@ -1,9 +1,9 @@
 === Make Me Static, Static Site Generator for Git publication ===
 Contributors: madpenguin
-Tags: static site generator, performance, security, speed, static
+Tags: static site generator, performance, security, staging, static
 Requires at least: 6.5
 Tested up to: 6.6.1
-Stable tag: 1.0.231
+Stable tag: 1.0.248
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -30,7 +30,7 @@ url will also include a customer-id prefix, but will always end in ".madpenguin.
 
 #### Useful links relating to the 3rd party service
 
-* [The service product page](https://madpenguin.uk/make-me-static/)
+* [The service product page](https://makemestatic.com/)
 * [Getting Started](https://madpenguin.uk/make-me-static-getting-started/)
 * [Terms and Conditions of Service](https://madpenguin.uk/mms-terms-and-conditions/)
 * [Privacy Policy](https://madpenguin.uk/privacy-policy/)
@@ -106,6 +106,7 @@ In theory yes, although compatibility and interaction with with plugins will var
 = How "good" is it? =
 
 For a few examples, take a look at;
+ * https://makemestatic.com
  * https://linux.uk
  * https://madpenguin.uk
  * https://nutpress.co.uk
@@ -159,6 +160,25 @@ https://madpenguin.uk/make-me-static/
 Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
+
+= 1.0.247 =
+
+Back-end crawling improvements
+
+* Crawler: Better support form /wp-json and dynamic URL's
+* Crawler: Fixed reporting on invalid GitLab token
+* Crawler: Fixed exception report in site validation fail
+* Crawler: Changed behaviour when dealing with local (#) links
+* Crawler: Changed behaviour when dealing /wp-json and oembed
+
+= 1.0.239 =
+
+Crawler improvements and documentation
+
+* Docs: New site at https://makemestatic.com
+* Crawler: Better support for oembed mapping
+* Crawler: Fixed auto-robots.txt location
+* Crawler/UI: Better re-conection on server restart
 
 = 1.0.231 =
 

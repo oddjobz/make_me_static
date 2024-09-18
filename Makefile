@@ -32,8 +32,9 @@ build_base:
 	@mkdir -p ${BUILD}
 	@cp readme.txt ${BUILD}
 	@cp LICENSE ${BUILD}
-	@mkdir -p ${BUILD}/assets
+	@mkdir -p ${BUILD}/assets/blueprints
 	@cp images/mms.jpeg ${BUILD}/assets/screenshot-1.jpeg
+	@cp blueprint.json ${BUILD}/assets/blueprints/
 
 build_php:
 #

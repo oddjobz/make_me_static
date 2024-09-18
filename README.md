@@ -1,3 +1,5 @@
+[![WP compatibility](https://plugintests.com/plugins/wporg/make-me-static/wp-badge.svg)](https://plugintests.com/plugins/wporg/make-me-static/latest) [![PHP compatibility](https://plugintests.com/plugins/wporg/make-me-static/php-badge.svg)](https://plugintests.com/plugins/wporg/make-me-static/latest)
+
 # Make Me Static - Plugin for Wordpress
 
 Welcome to the Make Me Static Plugin for Wordpress. This software aims to create and 
