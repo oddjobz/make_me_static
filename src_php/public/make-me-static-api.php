@@ -245,9 +245,9 @@ class make_me_static_api {
 	public function api_notify_changes () {
 		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1))->format('c');
 		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0))->format('c');
-		return array([
+		return array(
 			'last_change' => $last_change,
 			'last_sitemap' => $last_sitemap
-		]);
+		);
 	}
 }

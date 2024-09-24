@@ -255,8 +255,21 @@ function onLoadModule () {
     log.debug ('Socket is: ', socket.value)
     registerWithWordpress ()
 }
-
-
+//
+//
+//
+async function registerWordpressOk (response) {
+    let content = await response.json()
+    if (content.permalink == 'plain') {
+        state.value = 9
+        log.error ('Permalink set to "plain", not a valid option for static sites')
+        return
+    }
+    window.MMS_API_Settings.host_id = connection.hostid
+    let app = await plugin (opt, namespace, socket);
+    if (socket.value.connected) loadRoute ()
+    else app.events.authenticated = () => auth2.value = true
+}
 //
 //  Register our host_id with Wordpress so the MMS service can validate
 //  this host_id is allowed to scan the site.
@@ -267,35 +280,39 @@ async function registerWithWordpress () {
         state.value = 7
         return
     }
-    const url = new URL(apiurl.value + 'make_me_static/v1/register_host');
+    let base = new URL (apiurl.value + 'make_me_static/v1/register_host')
+    let response = null
+    //
+    //  Try the JSON API first
+    //
+    response = await registerWordpressCall (base)
+    if (response.status == 200) {
+        log.info ('Registered with Wordpress via JSON API')
+        return await registerWordpressOk (response)
+    }
+    log.info ('JSON API Query not successful, code => ', response.status)
+    //
+    //  It appears the WP REST API is problematic, some people disable it (!)
+    //  So do all the same stuff, just use the legacy API
+    //
+    response = await registerWordpressCall (new URL(base.origin + '/make_me_static_api_register_host.json'))
+    if (response.status == 200) {
+        log.info ('Registered with Wordpress via Legacy API')
+        log.warning ('Your JSON API is not working properly, you should probably check this out!')
+        return await registerWordpressOk (response)
+    }
+    log.error ('Unable to authenticate with Wordpress => '+ response.status)
+    log.error (response)
+    state.value = 4
+}
+//
+//  We're passing our own UUID (essentially a password) together with our own
+//  host_id (which is our PKI secured token) to the WP JSON API. (secured by a Nonce)
+//
+async function registerWordpressCall (url, response) {
     url.searchParams.set('host_id', connection.hostid);
     url.searchParams.set('site', window.MMS_API_Settings.uuid);
-    //
-    //  We're passing our own UUID (essentially a password) together with our own
-    //  host_id (which is our PKI secured token) to the WP JSON API. (secured by a Nonce)
-    //
-    let response = await fetch(url.href, {method: 'GET', headers: {'X-WP-Nonce': nonce.value}})
-    if (!response.ok) {
-        log.error ('Error Calling WordPress API')
-        state.value = 9
-        return
-    }
-    if (response.status != 200) {
-        log.error('Access Denied trying to register with Wordpress => ', response.status)
-        state.value = 4
-        return
-    }
-    response = await response.json()
-    if (response.permalink == 'plain') {
-        log.error("Bad permalink structure, we can't work with 'plain'")
-        state.value = 9
-        return
-    }
-    log.info (response.message)
-    window.MMS_API_Settings.host_id = connection.hostid
-    let app = await plugin (opt, namespace, socket);
-    if (socket.value.connected) loadRoute ()
-    else app.events.authenticated = () => auth2.value = true
+    return await fetch(url.href, {method: 'GET', headers: {'X-WP-Nonce': nonce.value}})
 }
 //
 //  loadRoute - attempt to populate the routeStore cache, assuming this works
