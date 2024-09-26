@@ -10,16 +10,17 @@
         <div>Forum</div>
     </div>
     <section class="content mmsdir">
-        <ConfirmDialog :closable=false group="confirmtac">
+        <ConfirmDialog :closable=false group="confirmtac" class="mms-dialog">
             <template #message="slotProps">
                 <div style="display:flex;flex-direction: column">
                     <div style="width:600px" v-html="slotProps.message.message"/>
                     <ul style="margin-top: 5px;margin-bottom: 5px">
                         <li v-for="item in slotProps.message.links">
-                            <a :href="item.link" target="_blank">{{ item.html }}</a>
+                            <a v-if="item.link" :href="item.link" target="_blank">{{ item.html }}</a>
+                            <span v-else>{{ item.html }}</span>
                         </li>
                     </ul>
-                    <div style="margin-top: 7px">
+                    <div style="margin-top: 7px" v-show="state==2">
                         <div class="card flex flex-wrap justify-content-center gap-3" style="position:fixed">
                             <Checkbox style="text-align: center"
                                 v-model="checked"
@@ -32,13 +33,7 @@
                 </div>
             </template>
         </ConfirmDialog>
-        <Card class="error-card" v-if="is_disabled">
-            <template #title><div class="head">ACCOUNT DISABLED</div></template>
-            <template #content><p class="text">
-                <div>Sorry, this account has been disabled. Please contact <b><a href="https://support.madpenguin.uk">Mad Penguin Support</a></b></div>
-                <div>Or Email us at <b><a href="mailto:support@madpenguin.uk">Support@MadPenguin.uk</a></b></div>
-            </p></template>
-        </Card>
+        <div class="spin-wrapper" v-if="is_disabled"><AccountDisabled :root="root" /></div>
         <div class="spin-wrapper" v-else-if="state==1">
             <div class="spinner">
                 <ProgressSpinner style="width:70px;height:70px;visibility: visible" strokeWidth="8"/>
@@ -48,74 +43,13 @@
         <div class="spin-wrapper" v-else-if="state==2">
             <TermsAndConditions :checked="ischecked" :root="root" :answer="answer" @terms-rejected="state=3" @terms-accepted="loadCrawler()" />
         </div>
-        <Card class="error-card" v-else-if="state==3">
-            <template #title><div class="head">NOT ALLOWED</div></template>
-            <template #content><p class="text">
-                <div>Sorry, but you must Accept the Terms and Conditions before you can use this Software.</div>                
-            </p></template>
-        </Card>
-        <Card class="error-card" v-else-if="state==4">
-            <template #title><div class="head">NOT ALLOWED</div></template>
-            <template #content><p class="text">
-                <div>Something went wrong authenticating your account or session</div>
-                <div>Please try logging out of Wordpress and logging back in - if that</div>
-                <div>doesn't work, please contact technical support at <b>support@madpenguin.uk</b></div>
-            </p></template>
-        </Card>
-        <Card class="error-card" v-else-if="state==5">
-            <template #title><div class="head">NOT ALLOWED</div></template>
-            <template #content><p class="text">
-                <div>Something went wrong authenticating your account or session</div>
-                <div>It looks like the code is trying to load a module from an unauthorized location</div>
-                <div>Please contact technical support at <b>support@madpenguin.uk</b> or try again later</div>
-            </p></template>
-        </Card>
-        <Card class="error-card" v-else-if="state==6">
-            <template #title><div class="head">SERVER ERROR</div></template>
-            <template #content><p class="text">
-                    <div>Something went wrong trying to connect to the server</div>
-                    <div>** It looks like the server may be down or malfunctioning **</div>
-                    <div>Please contact technical support at <b>support@madpenguin.uk</b> or try again later</div>
-            </p></template>
-        </Card>
-        <Card class="error-card" v-else-if="state==7">
-            <template #title><div class="head">WORDPRESS CONFIGURATION ISSUE</div></template>
-            <template #content><p class="text">
-                    <div>It looks like Wordpress is running over HTTP rather than HTTPS.</div>
-                    <div>Unfortunatley this Plugin can only work over public HTTPS connecitons.</div>
-                    <div>If your site is running behind a Proxy or VPN, please look at Settings -> General and amend "Site Address" to reflect your public HTTPS address.</div>
-            </p></template>
-        </Card>
-        <Card class="error-card" v-else-if="state==8">
-            <template #title><div class="head">COMMUNICATION ISSUE</div></template>
-            <template #content>
-                <div>
-                    <p class="text">We're having problems connecting to your server, please make sure;</p>
-                    <ul style="list-style-type: square;margin-left: 7em">
-                        <li>nothing is interfering with "query strings" on your server</li>
-                        <li>Your Wordpress JSON API is enabled</li>
-                    </ul>
-                </div>
-                <p class="text">If you visit our <a href="https://support.madpenguin.uk" target="_blank">Support Forums</a> someone will be happy to help diagnose the problem</p>
-            </template>
-        </Card> 
-        <Card class="error-card" v-else-if="state==9">
-            <template #title><div class="head">PERMALINKS NOT CONFIGURED</div></template>
-            <template #content>
-                <div>
-                    <p class="text">It looks like your "permalink structure" is set to "plain"</p>
-                    <p class="text">This structure does not play well with search engines or static sites, please <br/><a href="/wp-admin/options-permalink.php">choose another</a> from the setings page, then revisit this page</p>
-                    <p class="text">If you visit our <a href="https://support.madpenguin.uk" target="_blank">Support Forums</a> someone will be happy to help diagnose the problem</p>
-                </div>
-            </template>
-        </Card>                
-        <Card class="error-card" v-else-if="state!=0">
-            <template #title><div class="head">NOT ALLOWED</div></template>
-            <template #content><p class="text">
-                <div>Something went wrong authenticating your account or session</div>
-                <div>This looks like a software bug, please report code "<b>{{ state }}</b>" to <b>support@madpenguin.uk</b></div>
-            </p></template>
-        </Card>
+        <div class="spin-wrapper" v-else-if="state==3"><NotAllowed :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state==4"><BadSession :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state==6"><BadAuth :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state==7"><BadScheme :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state==8"><BadComms :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state==9"><BadLinks :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state!=0"><Unknown :root="root" /></div>
         <div class="main-display" v-show="state==0 && !is_disabled">
             <div id="make-me-static-crawler" :style="app_style" />
         </div>
@@ -128,11 +62,17 @@ import ProgressSpinner from 'primevue/progressspinner';
 import { defineComponent, ref, watch, computed, inject, onMounted, toRaw, readonly } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLogger } from './OrbitLogger.js'
-import TermsAndConditions from "@/components/termsandconditions.vue";
+import TermsAndConditions from "@/components/dialog_terms.vue";
+import AccountDisabled from "@/components/dialog_disabled.vue";
+import NotAllowed from "@/components/dialog_notallowed.vue";
+import BadSession from "@/components/dialog_badsession.vue";
+import BadAuth from "@/components/dialog_badauth.vue";
+import BadScheme from "@/components/dialog_badscheme.vue";
+import BadComms from "@/components/dialog_badcomms.vue";
+import BadLinks from "@/components/dialog_badlinks.vue";
+import Unknown from "@/components/dialog_unknown.vue";
 import ConfirmDialog from 'primevue/confirmdialog';
-import Card from 'primevue/card';
 import Checkbox from 'primevue/checkbox';
-import pkg from '../../package.json';
 //
 //  RouteStore
 //
@@ -169,7 +109,7 @@ const root          = computed(() => {
 const app_style     = computed(() => have_app.value ? "height:100%;width:100%" : "height:0;width:0")
 const auth1         = computed(() => connection.authenticated)
 const auth2         = ref(false)
-const state         = ref(1)
+const state         = ref(0)
 const loaded        = ref(false)
 const apiurl        = ref(window.MMS_API_Settings.apiurl)
 const nonce         = ref(null)
@@ -457,6 +397,15 @@ export default defineComponent({
     },
 })
 </script>
+
+<style>
+div.p-dialog-mask .mms-dialog {
+    border:4px solid rgb(135, 31, 231);
+}
+div.p-dialog-mask .mms-dialog .p-dialog-title {
+    color: rgb(135, 31, 231);
+}
+</style>
 
 <style scoped>
 .agree {

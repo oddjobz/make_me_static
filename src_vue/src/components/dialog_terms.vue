@@ -18,8 +18,8 @@ import { useLogger } from './OrbitLogger.js'
 const routeStore    = useRouteStore();
 const confirm       = useConfirm();
 const log           = useLogger()
-const message       = '<p>In order to use this software you must agree to our general terms and conditions and terms and conditions specific to this service.'+
-                      ' Note that this service is <b>FREE</b> to use <b>UNLESS</b> you specifically upgrade to a paid tier and provide credit card details.</p>'
+const message       = '<p>In order to use this software you must agree to our Terms and Conditions of use for the Make Me Static Service</p>'+
+                      '<p>Note that this service is <b>FREE</b> to use unless you <b>specifically</b> upgrade to a paid tier and provide credit card details.</p>'
 const props         = defineProps(['answer', 'checked', 'root'])
 const emit          = defineEmits(['terms-rejected', 'terms-accepted'])
 const checked       = computed(() => props.checked)
@@ -40,8 +40,7 @@ function doConfirm () {
         message: message,
         header: `Terms and Conditions`,
         links: [
-            {link: "https://madpenguin.uk/terms-of-service/", html: "MadPenguin's Terms of Service"},
-            {link: "https://madpenguin.uk/mms-terms-and-conditions/", html: "Make Me Static Terms of Use"}
+            {link: "https://madpenguin.uk/terms-and-conditions/", html: "Make Me Static - Terms and Conditions of Use"}
         ],
         icon: "pi pi-refresh",
         acceptLabel: "Accept",

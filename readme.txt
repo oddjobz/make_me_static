@@ -15,26 +15,39 @@ Welcome to the Make Me Static Plugin for Wordpress. This plugin is a static site
 The intention is that this Git repository can be used as a source for a static page provider who can monitor Git updates and automatically publish a static copy of your site from the current contents of your repository.
 The plugin provides a customised sitemap and change tracking which connects to the external MMS service which does all the heavy lifting.
 
-### What do we rely on?
+### How the service works
 
-This plugin employs a third party service to scan a Wordpress site and store the resulting static copy in a Git repository. The service retains a metadata database for the site which includes file names, sizes and modification times, together with any credentials that have been added when creating a profile. (Sensitive credentials and other information is encrypted at rest).  The external service is responsible for all scanning and processing activities to mitigate strain on the Wordpress server.
-The only private data transferred to the external service is the information you enter when creating a profile. All other information is obtained via an anonymous external scan, hence publically available.
+The plugin connects to a directory service on the Internet at one of the directory URL's listed below. This in turn will point the plugin to the 'crawler' that has been allocated to your site.
+When you ask the plugin to make a static copy of your site, it will instruct the crawler to visit pages on your site to determine which have changed since it's last visit. Any changed pages will be 
+copies to a Git repository, which in turn can publish pages directly to a page hosting service.
 
-The plugin references the third party service via directory services which are accessed at;
+The default option is to use a Git account hosted by MadPenguin, and to publish the site on MadPenguin's page hosting platform. As a result the default options do not require any specific Git or Page hosting 
+configuration to get going. If on the other hand you choose to use a hosted Git service such as GitLab, you will need to enter some credentials for your online account, and from there configure your 
+GitLab account to publish to a page hosting service.
+
+Once you have successfully publushed a static copy of your site, all you need to do is point your domain at the address of the page hosting service, and asssuming your domain matches the one you 
+entered when setting up your profile within the plugin, you should be up and running.
+
+The service retains a metadata database for the site which includes file names, sizes and modification times, together with any credentials that have been added when creating a profile. (Sensitive credentials and other information is encrypted at rest).  The external service is responsible for all scanning and processing activities to mitigate strain on the Wordpress server.
+The only private data transferred to the external service is the information you enter when creating a profile. All other information is obtained via an anonymous external scan, hence publically available. If you have selected the default Git option, then the service will also retain a static copy of the site.
+
+### Useful references
+
+* [The service product page](https://makemestatic.com/)
+* [Terms and Conditions of Service](https://makemestatic.com/terms-and-conditions/)
+* [Privacy Policy](https://makemestatic.com/privacy-policy/)
+* [Getting Started](https://makemestatic.com/getting-started/)
+* [Service Status](https://makemestatic.com/service-status/)
+* [Support Forum](https://support.madpenguin.uk/)
+
+Make me static directory service URL's;
+
 * https://mms-directory-1.madpenguin.uk
 * https://mms-directory-2.madpenguin.uk
 * https://mms-directory-3.madpenguin.uk
 
-This in turn will refererence the crawler allocated to the site in question. Crawler URLs typically take the form https://mms-crawler-(n).madpenguin.uk. For on-premisis crawlers the 
+These in turn will refererence the crawler allocated to the site in question. Crawler URLs typically take the form https://mms-crawler-(n).madpenguin.uk. For on-premisis crawlers the 
 url will also include a customer-id prefix, but will always end in ".madpenguin.uk".
-
-#### Useful links relating to the 3rd party service
-
-* [The service product page](https://makemestatic.com/)
-* [Getting Started](https://madpenguin.uk/make-me-static-getting-started/)
-* [Terms and Conditions of Service](https://madpenguin.uk/mms-terms-and-conditions/)
-* [Privacy Policy](https://madpenguin.uk/privacy-policy/)
-* [Support Forum](https://support.madpenguin.uk/)
 
 Note that this in an integrated solution, the 3rd party service is owned and operated by the plugin authors on a combination of cloud hosted and on premisis equipment.
 
@@ -107,9 +120,20 @@ In theory yes, although compatibility and interaction with with plugins will var
 
 For a few examples, take a look at;
  * https://makemestatic.com
- * https://linux.uk
  * https://madpenguin.uk
+ * https://linux.uk
  * https://nutpress.co.uk
+
+= How can I see my published site?
+
+In your plugin, if you look as the "Profiles" view, the first column is labelled "Profile". If you click on the profile name, it will attempt to link to where it thinks your static site should be if it has been published.
+If you are using GitLab, this link should be to the "public URL" entered into your profile. If you are using the default Git option, this link should point to a unique URL on the MadPenguin pages platform.
+
+= How to I point my domain at my new static site?
+
+Assuming that you are using the default Git option, visit the address of your new static site by clicking on the name of your profile in "Profiles", it will be a long number followed by .pages.madpenguin.uk.
+Now visit the DNS configuration of your hosting provider (CloudFlare for example) and add a CNAME record for your domain, pointing at your *.pages.madpenguin.uk address.
+That should be it!
 
 = The Crawl doesn't find any pages? =
 
