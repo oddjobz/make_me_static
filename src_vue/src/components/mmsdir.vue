@@ -34,10 +34,20 @@
             </template>
         </ConfirmDialog>
         <div class="spin-wrapper" v-if="is_disabled"><AccountDisabled :root="root" /></div>
-        <div class="spin-wrapper" v-else-if="state==1">
+        <div class="spin-wrapper" v-else-if="(state==1)&&(!errors)">
             <div class="spinner">
                 <ProgressSpinner style="width:70px;height:70px;visibility: visible" strokeWidth="8"/>
                 <div class="loading">L O A D I N G ...</div>
+            </div>
+        </div>
+        <div class="spin-wrapper" v-else-if="(state==1)&&(errors)">
+            <div class="spinner">
+                <ProgressSpinner style="width:70px;height:70px;visibility: visible" strokeWidth="8"/>
+                <div class="loading">C O N N E C T I O N &nbsp;&nbsp;&nbsp; R E T R Y ({{ errors }})</div>
+                <div class="loading" v-if="errors<5">This is probably a transient error, please wait ...</div>
+                <div class="loading" v-if="(errors>5)&&(errors<=20)">Looks like a problem, maybe try again in a few minutes ...</div>
+                <div class="loading" style="color:orange" v-if="errors>20"><a target="_blank" href="https://test.makemestatic.com/service-status/">Click here to check the service status</a></div>
+                <div class="loading" v-if="errors>5">{{ error_host }}</div>
             </div>
         </div>
         <div class="spin-wrapper" v-else-if="state==2">
@@ -107,9 +117,11 @@ const root          = computed(() => {
     return opt && opt.router ? opt.router.currentRoute.value.meta.root : null
 })
 const app_style     = computed(() => have_app.value ? "height:100%;width:100%" : "height:0;width:0")
+const errors        = computed(() => connection.errors)
+const error_host    = computed(() => connection.error_host)
 const auth1         = computed(() => connection.authenticated)
 const auth2         = ref(false)
-const state         = ref(0)
+const state         = ref(1)
 const loaded        = ref(false)
 const apiurl        = ref(window.MMS_API_Settings.apiurl)
 const nonce         = ref(null)
@@ -142,10 +154,10 @@ const emitRoute = () => {
 //     log.warn (`State set to ${state.value}`)
 // })
 
-
 watch (auth1, () => {
     registerWithWordpress()
 })
+
 //  watch auth2 - this happens when we make a virtual connection to the directory application
 //  and means we're able to load data from the service, i.e. our route and license info. So,
 //  do just that, grab our route object.

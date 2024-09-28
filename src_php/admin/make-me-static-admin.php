@@ -149,9 +149,9 @@ class make_me_static_Admin {
 	 */
 	public function enqueue_scripts() {
 		if (get_current_screen()->base == 'toplevel_page_make-me-static') {
-			$path = str_contains( $this->directory, '-dev') ? 'src/main.js' : 'index.js';
+			$path = str_contains( $this->directory, '-dev') ? $this->directory.'src/main.js' : '/wp-content/plugins/make-me-static/admin/js/index.js';
 			$my_id = $this->plugin_name.'-directory';
-			wp_enqueue_script( $my_id, $this->directory.$path, array(), $this->version);
+			wp_enqueue_script( $my_id, $path, array(), $this->version);
 			add_filter('script_loader_tag', function($tag, $handle) use ($my_id) {
 				if ( $handle === $my_id) {
 					$tag = str_replace( '<script ', '<script type="module" ', $tag );

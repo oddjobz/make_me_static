@@ -54,9 +54,11 @@ build_vue:
 #	Install unscoped CSS
 #
 	@mkdir -p ${BUILD}/admin/css
+	@mkdir -p ${BUILD}/admin/js
 	@cd src_vue && npm run build
 	@cp -ra src_vue/public/theme.css ${BUILD}/admin/css/make-me-static-theme.css
 	@cp -ra src_vue/public/admin.css ${BUILD}/admin/css/make-me-static-admin.css
+	@cp -ra src_vue/dist/assets/index.js ${BUILD}/admin/js/index.js
 #
 build_zip:
 #
