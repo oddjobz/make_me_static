@@ -223,6 +223,19 @@ async function registerWordpressOk (response) {
     else app.events.authenticated = () => auth2.value = true
 }
 //
+//
+//
+function get_base_url (url_string) {
+    let url = new URL (url_string)
+    let path = url.pathname
+    let parts = path.split ('/')
+    parts.pop()
+    path = parts.join ('/')
+    url.pathname = path
+    return url.href
+}
+
+//
 //  Register our host_id with Wordpress so the MMS service can validate
 //  this host_id is allowed to scan the site.
 //
@@ -234,6 +247,9 @@ async function registerWithWordpress () {
     }
     let base = new URL (apiurl.value + 'make_me_static/v1/register_host')
     let response = null
+    //
+    log.info (`Using base: ${base}`)
+
     //
     //  Try the JSON API first
     //
@@ -247,7 +263,9 @@ async function registerWithWordpress () {
     //  It appears the WP REST API is problematic, some people disable it (!)
     //  So do all the same stuff, just use the legacy API
     //
-    response = await registerWordpressCall (new URL(base.origin + '/make_me_static_api_register_host.json'))
+    let url = get_base_url (apiurl.value ) + 'make_me_static_api_register_host.json'
+    log.info (`Using backup base: ${base}`)
+    response = await registerWordpressCall (new URL(url))
     if (response.status == 200) {
         log.info ('Registered with Wordpress via Legacy API')
         log.warning ('Your JSON API is not working properly, you should probably check this out!')

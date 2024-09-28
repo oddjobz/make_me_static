@@ -521,23 +521,27 @@ class make_me_static_Public {
 		global $wp_filesystem;
 		status_header (200);
 		header('Content-Type: application/xml');
+		echo "OK 2";
+		die;
+
 		$path1 = plugin_dir_path( __FILE__ ) . 'data/' . str_replace('-','.',$name);
 		$path2 = plugin_dir_path( __FILE__ ) . 'data/sitemap-index.xml';
 		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1));
 		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0));
-		if (($last_change > $last_sitemap)||(!$wp_filesystem->exists($path1)&&!$wp_filesystem->exists($path2))) {
-			$this->regenerate_sitemap();
-			update_option ('make-me-static-last', $last_change);
-		}
-		if ($wp_filesystem->exists($path1)) {
-			include $path1;
-			die;
-		}
-		if ($wp_filesystem->exists($path2)) {
-			include $path2;
-			die;
-		}
-		status_header (404);
+		
+		// if (($last_change > $last_sitemap)||(!$wp_filesystem->exists($path1)&&!$wp_filesystem->exists($path2))) {
+		// 	$this->regenerate_sitemap();
+		// 	update_option ('make-me-static-last', $last_change);
+		// }
+		// if ($wp_filesystem->exists($path1)) {
+		// 	include $path1;
+		// 	die;
+		// }
+		// if ($wp_filesystem->exists($path2)) {
+		// 	include $path2;
+		// 	die;
+		// }
+		// status_header (404);
 		die;
 	}
 
@@ -770,10 +774,10 @@ class make_me_static_Public {
 	public function make_me_static_template_redirect () {
 		global $wp_query;
 		$name = $wp_query->query_vars['name'];
-		if (preg_match('/^make_me_static_api_register_host-json$/', $name))		return $this->api_register_host();
-		if (preg_match('/^make_me_static_api_validate_host-json$/', $name))		return $this->api_validate_host();
-		if (preg_match('/^make_me_static_api_notify_changes-json$/', $name))	return $this->api_notify_changes();
-		if (preg_match('/^make_me_static_sitemap_comments-xml$/', $name))   	return $this->return_comments($name);		
-		if (preg_match('/^make_me_static_sitemap(.*)-xml$/', $name)) 			return $this->return_sitemap($name);
+		if (preg_match('/make_me_static_api_register_host-json$/', $name))		return $this->api_register_host();
+		if (preg_match('/make_me_static_api_validate_host-json$/', $name))		return $this->api_validate_host();
+		if (preg_match('/make_me_static_api_notify_changes-json$/', $name))	return $this->api_notify_changes();
+		if (preg_match('/make_me_static_sitemap_comments-xml$/', $name))   	return $this->return_comments($name);		
+		if (preg_match('/make_me_static_sitemap(.*)-xml$/', $name)) 			return $this->return_sitemap($name);
 	}
 }
