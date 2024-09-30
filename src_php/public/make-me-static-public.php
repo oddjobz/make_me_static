@@ -521,27 +521,28 @@ class make_me_static_Public {
 		global $wp_filesystem;
 		status_header (200);
 		header('Content-Type: application/xml');
-		echo "OK 2";
-		die;
-
 		$path1 = plugin_dir_path( __FILE__ ) . 'data/' . str_replace('-','.',$name);
 		$path2 = plugin_dir_path( __FILE__ ) . 'data/sitemap-index.xml';
 		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1));
 		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0));
-		
-		// if (($last_change > $last_sitemap)||(!$wp_filesystem->exists($path1)&&!$wp_filesystem->exists($path2))) {
-		// 	$this->regenerate_sitemap();
-		// 	update_option ('make-me-static-last', $last_change);
-		// }
-		// if ($wp_filesystem->exists($path1)) {
-		// 	include $path1;
-		// 	die;
-		// }
-		// if ($wp_filesystem->exists($path2)) {
-		// 	include $path2;
-		// 	die;
-		// }
-		// status_header (404);
+		try {
+			if (($last_change > $last_sitemap)||(!$wp_filesystem->exists($path1)&&!$wp_filesystem->exists($path2))) {
+				$this->regenerate_sitemap();
+				update_option ('make-me-static-last', $last_change);
+			}
+		} catch (Exception $e) {
+			echo "Problem with regenerate\n";
+			echo 'Caught exception: ',  $e->getMessage(), "\n";
+		}
+		if ($wp_filesystem->exists($path1)) {
+			echo $wp_filesystem->get_contents ($path1);
+			die;
+		}
+		if ($wp_filesystem->exists($path2)) {
+			echo $wp_filesystem->get_contents ($path2);
+			die;
+		}
+		status_header (404);
 		die;
 	}
 
