@@ -18,8 +18,12 @@ import { useLogger } from './OrbitLogger.js'
 const routeStore    = useRouteStore();
 const confirm       = useConfirm();
 const log           = useLogger()
-const message       = '<p>In order to use this software you must agree to our Terms and Conditions of use for the Make Me Static Service</p>'+
+const terms         = '<p>In order to use this software you must agree to our Terms and Conditions of use for the Make Me Static Service</p>'+
                       '<p>Note that this service is <b>FREE</b> to use unless you <b>specifically</b> upgrade to a paid tier and provide credit card details.</p>'
+const playground    =   '<p>This Demo WordPress instance is running <b>inside</b> your browser hence is not viaible on the Internet.</p>'+
+                        '<p>As a result we will scan the <b>MakeMeStatic</b> WordPress instance. This will make a <b>real</b> static copy of the site and will respond if you assign a <b>real</b> domain name to it.</p>'+
+                        '<p>Demo Terms - <b>please do not try to abuse the demo</b></p>'
+
 const props         = defineProps(['answer', 'checked', 'root'])
 const emit          = defineEmits(['terms-rejected', 'terms-accepted'])
 const checked       = computed(() => props.checked)
@@ -35,13 +39,12 @@ watch (answer, (curr,prev) => {
 function doConfirm () {
     log.debug ("** DO CONFIRM **", answer, answer.value)
     if (answer.value) return
+    let links = location.hostname == 'playground.wordpress.net' ? [] : {link: "https://madpenguin.uk/terms-and-conditions/", html: "Make Me Static - Terms and Conditions of Use"}
     confirm.require({
         group: 'confirmtac',
-        message: message,
+        message: location.hostname == 'playground.wordpress.net' ? playground : terms,
         header: `Terms and Conditions`,
-        links: [
-            {link: "https://madpenguin.uk/terms-and-conditions/", html: "Make Me Static - Terms and Conditions of Use"}
-        ],
+        links: links,
         icon: "pi pi-refresh",
         acceptLabel: "Accept",
         rejectLabel: "Decline",
