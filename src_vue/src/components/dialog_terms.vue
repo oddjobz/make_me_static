@@ -39,7 +39,7 @@ watch (answer, (curr,prev) => {
 function doConfirm () {
     log.debug ("** DO CONFIRM **", answer, answer.value)
     if (answer.value) return
-    let links = location.hostname == 'playground.wordpress.net' ? [] : {link: "https://madpenguin.uk/terms-and-conditions/", html: "Make Me Static - Terms and Conditions of Use"}
+    let links = location.hostname == 'playground.wordpress.net' ? [] : [{link: "https://madpenguin.uk/terms-and-conditions/", html: "Make Me Static - Terms and Conditions of Use"}]
     confirm.require({
         group: 'confirmtac',
         message: location.hostname == 'playground.wordpress.net' ? playground : terms,

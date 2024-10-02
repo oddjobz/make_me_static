@@ -531,19 +531,19 @@ class make_me_static_Public {
 				update_option ('make-me-static-last', $last_change);
 			}
 		} catch (Exception $e) {
-			echo "Problem with regenerate\n";
-			echo 'Caught exception: ',  $e->getMessage(), "\n";
+			echo 'Caught exception: '.esc_html($e->getMessage())."\n";
+			wp_die ('exception in sitemap generator'.esc_html($e->getMessage()));
 		}
 		if ($wp_filesystem->exists($path1)) {
-			echo $wp_filesystem->get_contents ($path1);
+			include $path1;
 			die;
 		}
 		if ($wp_filesystem->exists($path2)) {
-			echo $wp_filesystem->get_contents ($path2);
+			include $path2;
 			die;
 		}
 		status_header (404);
-		die;
+		wp_die ('failed to find sitemap file');
 	}
 
 	/**
@@ -688,19 +688,47 @@ class make_me_static_Public {
 	 * MMS Will send a UUID, USER and HOST_ID, we're just going to look it up in our
 	 * metadata and return whether the HOST_ID is valid on this site a current admin session.
 	 * It's effectively an anonymous service so no user restrictions or nonce's apply.
+	 * 
+	 * All it does is return a 200 or 403, the Plugin checker gives a warning, it should not!
 	 *
 	 * @since		1.0.248
 	 * @access   	private
-	 * @param		$_GET['site'] 
-	 * @return    	WP_REST_Response 		  200 if Ok or 403 if unauthorized
+	 * @param		site, host_id, user 
+	 * @return    	WP_REST_Response 		  200 if Ok or 403 if unauthorized, 500 on error
 	 * 
 	 */
 
 	 private function api_validate_host () {
 		//
+		//	Note on NONCE: this is a fall-back routine which was initially implemented
+		//	using the Wordpress API. The problem is that out in the Wild the API rarely
+		//	seems to work as people either disable it, make it authenticated only, or
+		//	mess with query strings to break it.
+		//
+		//	This routine is called by the MMS back-end to make sure "it" is allowed
+		//	to crawl the site. There is ZERO risk for Wordpress, so it REALLY does
+		//	not neet a nonce - there is no NONCE, MMS can crawl when nobody is logged in.
+		//  I see complaints from people complaining that forcing nonce verification is 
+		//	annoying, and other people saying it's "required".
+		//
+		//	It some cases, it's just not. I understand the "use the API", and I try, but
+		//	if it doesn't work, the choice is removed. It would be nice if there was a 
+		//	little acceptance that real world operation does not always == what would
+		//	be nice in theory.
+		//
 		//	Incoming parameters include the site (a uuid) and host_id and user
 		//
-		$site = sanitize_text_field($_GET['site']);
+		if (!isset($_GET['site'])) // phpcs:ignore
+			wp_send_json(array( 'message' => 'Missing a site parameter' ), 500);
+		$site = sanitize_text_field(wp_unslash($_GET['site'])); // phpcs:ignore
+
+		if (!isset($_GET['host_id'])) // phpcs:ignore
+			wp_send_json(array( 'message' => 'Missing a host parameter' ), 500);
+		$host = sanitize_text_field(wp_unslash($_GET['host_id'])); // phpcs:ignore
+
+		if (!isset($_GET['user'])) // phpcs:ignore
+			wp_send_json(array( 'message' => 'Missing a user parameter' ), 500);
+		$user = sanitize_text_field(wp_unslash($_GET['user'])); // phpcs:ignore
 		//
 		//	Make sure this request is for us ...
 		//
@@ -709,7 +737,7 @@ class make_me_static_Public {
 		//
 		//	Check the metadata to see if there is a valid session for this user/host_id
 		//
-		if ($this->is_host_id_valid (sanitize_text_field($_GET['user']), sanitize_text_field($_GET['host_id'])))
+		if ($this->is_host_id_valid (sanitize_text_field($user), sanitize_text_field($host)))
 			wp_send_json( array( 'message' => 'Ok, host_id attached to a valid session' ), 200);
 		wp_send_json( array( 'message' => 'Session invalid or expired' ), 403);
 	}
@@ -733,14 +761,27 @@ class make_me_static_Public {
 		//
 		//	Verify the nonce
 		//
-		$nonce = $_SERVER['HTTP_X_WP_NONCE'];
-		if (!wp_verify_nonce($nonce, 'wp-rest')) {
-			wp_die('Nonce verification failed.');
-		}
+		if (!isset($_SERVER['HTTP_X_WP_NONCE']))
+			wp_send_json(array('message'=>'Missing nonce'),500);
+		$nonce = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_WP_NONCE']));
+		if (!wp_verify_nonce($nonce, 'wp-rest'))
+			wp_die ('bad nonce');
+
+		// if (!(isset($_SERVER['HTTP_X_WP_NONCE'])))
+		// $nonce = wp_unslash($_SERVER['HTTP_X_WP_NONCE']);
+		// if (!wp_verify_nonce($nonce, 'wp-rest')) {
+		// 	wp_die('Nonce verification failed.');
+		// }
 		//
 		//	Incoming parameters include the site (a uuid) and host_id
 		//
-		$site = sanitize_text_field($_GET['site']);
+		if (!isset($_GET['site']))
+			wp_send_json(array( 'message' => 'Missing a site parameter' ), 500);
+		$site = sanitize_text_field(wp_unslash($_GET['site']));
+
+		if (!isset($_GET['host_id']))
+			wp_send_json(array( 'message' => 'Missing a host parameter' ), 500);
+		$host = sanitize_text_field(wp_unslash($_GET['host_id']));
 		//
 		//	Needs to be an admin session
 		//
@@ -754,7 +795,7 @@ class make_me_static_Public {
 		//
 		//	Make sure host_id is available and update it's stamp if it already exists
 		//
-		$this->update_metadata ( sanitize_text_field($_GET['host_id']));
+		$this->update_metadata ( $host );
 		//
 		//	Also check the permalink structure is ok
 		//
