@@ -16,7 +16,7 @@ const routeStore    = useRouteStore();
 const confirm       = useConfirm();
 const log           = useLogger()
 const message       = '<p>Sorry, but it looks like there is a problem with the current session. We rely on a Wordpress Session being active and the session we were using has expired.</p>'+
-                        '<p>Please try reloading the page, or simply visit the Wordpress Dashboard and come back to re-initialise a new session</p>'
+                        '<p>Please try logging out of Wordpress and logging in again to re-initialise a new session</p>'
 const props         = defineProps(['root'])
 const checked       = computed(() => props.checked)
 const answer        = computed(() => props.answer)

@@ -3,7 +3,7 @@ Contributors: madpenguin
 Tags: static site generator, performance, security, staging, static
 Requires at least: 6.5
 Tested up to: 6.6.1
-Stable tag: 1.0.316
+Stable tag: 1.1.8
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -11,19 +11,18 @@ This plugin is a static site generator for your Wordpress instance that stores a
 
 == Description ==
 
-Welcome to the Make Me Static Plugin for Wordpress. This plugin is a static site generator and aims to create and maintain a static copy of your Wordpress website within a Git repository.
-The intention is that this Git repository can be used as a source for a static page provider who can monitor Git updates and automatically publish a static copy of your site from the current contents of your repository.
-The plugin provides a customised sitemap and change tracking which connects to the external MMS service which does all the heavy lifting.
+Welcome to the Make Me Static Plugin for Wordpress. This plugin is a static site generator and aims to create and maintain a static copy of your Wordpress website within a Git repository. This version includes automatic access to a free Git solution and Page provider platform. (so no setup or credentials are necessary)
+
+Alternatively the static site can be generated and stored in a GitLab Git Repository that can be used as a source for a static page platform such as CloudFlare Pages. The plugin provides a customised sitemap and change tracking which connects to an external crawling service which does all the heavy lifting.
+
+We have made great efforts in this version to minimise the configuration required to get going, if you have any problems (with anything) please let is know and we'll do our best to help.
 
 ### How the service works
 
-The plugin connects to a directory service on the Internet at one of the directory URL's listed below. This in turn will point the plugin to the 'crawler' that has been allocated to your site.
-When you ask the plugin to make a static copy of your site, it will instruct the crawler to visit pages on your site to determine which have changed since it's last visit. Any changed pages will be 
-copies to a Git repository, which in turn can publish pages directly to a page hosting service.
+The plugin connects to a directory service on the Internet at one of the directory URL's listed below. This in turn will point the plugin to a 'crawler' that has been allocated to your site.
+When you ask the plugin to make a static copy of your site, it will instruct the crawler to visit all the pages on your site to determine which have changed since it's last visit. Any changed pages will be copied to a Git repository, which in turn can publish pages directly to a page hosting service.
 
-The default option is to use a Git account hosted by MadPenguin, and to publish the site on MadPenguin's page hosting platform. As a result the default options do not require any specific Git or Page hosting 
-configuration to get going. If on the other hand you choose to use a hosted Git service such as GitLab, you will need to enter some credentials for your online account, and from there configure your 
-GitLab account to publish to a page hosting service.
+The default option is to use a Git account hosted by MadPenguin, and to publish the site on MadPenguin's page hosting platform. As a result the default options do not require any specific Git or Page hosting configuration to get going. If on the other hand you choose to use a hosted Git service such as GitLab, you will need to enter some credentials for your online account, and from there configure your GitLab account to publish to a page hosting service.
 
 Once you have successfully publushed a static copy of your site, all you need to do is point your domain at the address of the page hosting service, and asssuming your domain matches the one you 
 entered when setting up your profile within the plugin, you should be up and running.
@@ -49,7 +48,7 @@ Make me static directory service URL's;
 These in turn will refererence the crawler allocated to the site in question. Crawler URLs typically take the form https://mms-crawler-(n).madpenguin.uk. For on-premisis crawlers the 
 url will also include a customer-id prefix, but will always end in ".madpenguin.uk".
 
-Note that this in an integrated solution, the 3rd party service is owned and operated by the plugin authors on a combination of cloud hosted and on premisis equipment.
+Note that this in an integrated solution, the 3rd party crawling service is owned and operated by the plugin authors on a combination of cloud hosted and on premisis equipment.
 
 ### How Does it work?
 
@@ -131,9 +130,9 @@ If you are using GitLab, this link should be to the "public URL" entered into yo
 
 = How to I point my domain at my new static site?
 
-Assuming that you are using the default Git option, visit the address of your new static site by clicking on the name of your profile in "Profiles", it will be a long number followed by .pages.madpenguin.uk.
-Now visit the DNS configuration of your hosting provider (CloudFlare for example) and add a CNAME record for your domain, pointing at your *.pages.madpenguin.uk address.
-That should be it!
+First you need to make sure you have verified your email address, do this by clicking on the Subscription button at the top of the screen. There is no obligation here, it's Free, we just need a point of reference before allowing you to point a domain at us.
+
+When you've done this, edit the profile to which you want to add a domain. If your email address has been verified, you should see a "domain" field. Enter your domain in here (just the domain, so "abc.com" or "test.abc.com") then click in the orange "verify" button next to it. This will give you instructions on which DNS records you need to add to make it work. This might take a short while, you can click on "verify" and "Ok" repeatedly to re-check the result. Once it's verified, you will get a green tick next to the domain and the Orange button will turn blue. If you then click "confirm" to close the edit window, clicking on the profile name in the list of profiles should hopefully take you to your new site via your new domain.
 
 = The Crawl doesn't find any pages? =
 
@@ -184,6 +183,20 @@ https://madpenguin.uk/make-me-static/
 Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
+
+
+= 1.1.2 =
+
+Major new release
+
+* Static copies are now "relative" which makes them more portable between static hosts
+* Our own Git and Pages solutions have been integrated as the default solution
+* Fall-back authentication now works for sites with limited or disabled JSON API
+* Watermarking option now available
+* Per pages feeds can now be toggled
+* Rewritten profile editor
+* Extensive front-end checking for connection and WP config issues
+* Plugin should now work with blueprints
 
 = 1.0.247 =
 

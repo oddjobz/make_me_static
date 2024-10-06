@@ -816,10 +816,10 @@ class make_me_static_Public {
 	public function make_me_static_template_redirect () {
 		global $wp_query;
 		$name = $wp_query->query_vars['name'];
-		if (preg_match('/make_me_static_api_register_host-json$/', $name))		return $this->api_register_host();
-		if (preg_match('/make_me_static_api_validate_host-json$/', $name))		return $this->api_validate_host();
-		if (preg_match('/make_me_static_api_notify_changes-json$/', $name))	return $this->api_notify_changes();
-		if (preg_match('/make_me_static_sitemap_comments-xml$/', $name))   	return $this->return_comments($name);		
-		if (preg_match('/make_me_static_sitemap(.*)-xml$/', $name)) 			return $this->return_sitemap($name);
+		if (preg_match('/^make_me_static_api_register_host-json$/', $name))		return $this->api_register_host();
+		if (preg_match('/^make_me_static_api_validate_host-json$/', $name))		return $this->api_validate_host();
+		if (preg_match('/^make_me_static_api_notify_changes-json$/', $name))	return $this->api_notify_changes();
+		if (preg_match('/^make_me_static_sitemap_comments-xml$/', $name))   	return $this->return_comments($name);		
+		if (preg_match('/^make_me_static_sitemap(.*)-xml$/', $name)) 			return $this->return_sitemap($name);
 	}
 }
