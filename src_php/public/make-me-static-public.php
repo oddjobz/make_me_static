@@ -73,9 +73,9 @@ class make_me_static_Public {
 	 * 
 	 */
 
-	 private function get_generator ( $tmpdir, $page_size ) {
+	 private function get_generator ( $tmpdir, $page_size, $nest=false ) {
 		wp_mkdir_p( $tmpdir );	
-		$config = new make_me_static_sitemapconfig ($tmpdir);
+		$config = new make_me_static_sitemapconfig ($tmpdir, $nest);
 		$gen = new make_me_static_sitemapgenerator ($config );
 		$gen->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
 		$gen->setMaxURLsPerSitemap($page_size);
@@ -188,7 +188,7 @@ class make_me_static_Public {
 	private function include_items ( $items, $datdir, $index, $type) {
 		global $wp_filesystem;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		$generator = $this->get_generator ( $tmpdir, 100 );
+		$generator = $this->get_generator ( $tmpdir, 100, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0); 
@@ -231,7 +231,7 @@ class make_me_static_Public {
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 
-		$generator = $this->get_generator ( $tmpdir, $page_size );
+		$generator = $this->get_generator ( $tmpdir, $page_size, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
@@ -358,7 +358,7 @@ class make_me_static_Public {
 		$type = 'categories';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		$generator = $this->get_generator ( $tmpdir, $page_size );
+		$generator = $this->get_generator ( $tmpdir, $page_size, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = $this->include_subcategories ($datdir, $index, $generator, '', '/category');
@@ -389,7 +389,7 @@ class make_me_static_Public {
 		$type = 'tags';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		$generator = $this->get_generator ( $tmpdir, $page_size );
+		$generator = $this->get_generator ( $tmpdir, $page_size, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
@@ -439,7 +439,7 @@ class make_me_static_Public {
 		$type = 'authors';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		$generator = $this->get_generator ( $tmpdir, $page_size );
+		$generator = $this->get_generator ( $tmpdir, $page_size, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
@@ -761,17 +761,11 @@ class make_me_static_Public {
 		//
 		//	Verify the nonce
 		//
-		if (!isset($_SERVER['HTTP_X_WP_NONCE']))
+		if (!isset($_SERVER['X-Wp-Nonce']))
 			wp_send_json(array('message'=>'Missing nonce'),500);
-		$nonce = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_WP_NONCE']));
+		$nonce = sanitize_text_field(wp_unslash($_SERVER['X-Wp-Nonce']));
 		if (!wp_verify_nonce($nonce, 'wp-rest'))
 			wp_die ('bad nonce');
-
-		// if (!(isset($_SERVER['HTTP_X_WP_NONCE'])))
-		// $nonce = wp_unslash($_SERVER['HTTP_X_WP_NONCE']);
-		// if (!wp_verify_nonce($nonce, 'wp-rest')) {
-		// 	wp_die('Nonce verification failed.');
-		// }
 		//
 		//	Incoming parameters include the site (a uuid) and host_id
 		//

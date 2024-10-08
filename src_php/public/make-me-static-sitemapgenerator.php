@@ -36,10 +36,16 @@ class make_me_static_sitemapconfig extends Config {
 	 * @param    string    $tmpdir		Where we're going to store our work files
 	 */
 
-    public function __construct ( $tmpdir ) {
+    public function __construct ( $tmpdir, $nest=false ) {
         parent::__construct();
         $this->setSaveDirectory( $tmpdir );
-        $this->setBaseURL(get_site_url ());
+        $base = get_site_url ();
+		$permalink = get_option ('permalink_structure');
+		if (strpos($permalink, 'index.php') != false) {
+			if ((strpos($base, 'index.php') == false) && (!$nest))
+				$base = trailingslashit ($base) . 'index.php';
+		}
+		$this->setBaseURL($base);
     }
 
 }

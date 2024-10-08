@@ -227,11 +227,9 @@ async function registerWordpressOk (response) {
 //
 function get_base_url (url_string) {
     let url = new URL (url_string)
-    let path = url.pathname
-    let parts = path.split ('/')
+    let parts = url.pathname.split ('/').filter((x)=>x.length)
     parts.pop()
-    path = parts.join ('/')
-    url.pathname = path
+    url.pathname = parts.join ('/')
     return url.href
 }
 
@@ -249,7 +247,6 @@ async function registerWithWordpress () {
     let response = null
     //
     log.info (`Using base: ${base}`)
-
     //
     //  Try the JSON API first
     //
@@ -263,8 +260,8 @@ async function registerWithWordpress () {
     //  It appears the WP REST API is problematic, some people disable it (!)
     //  So do all the same stuff, just use the legacy API
     //
-    let url = get_base_url (apiurl.value ) + 'make_me_static_api_register_host.json'
-    log.info (`Using backup base: ${base}`)
+    let url = get_base_url (apiurl.value ) + '/make_me_static_api_register_host.json'
+    log.info (`Using backup base: ${url}`)
     response = await registerWordpressCall (new URL(url))
     if (response.status == 200) {
         log.info ('Registered with Wordpress via Legacy API')
