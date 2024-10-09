@@ -3,7 +3,7 @@ Contributors: madpenguin
 Tags: static site generator, performance, security, staging, static
 Requires at least: 6.5
 Tested up to: 6.6.1
-Stable tag: 1.1.20
+Stable tag: 1.1.34
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -174,7 +174,7 @@ In your "wp-config.php" file, you need to add a define section, in this example 
 * No. Your site will need at least to have a front-end HTTPS front-end. Always make sure your site address in Settings -> General reflects the HTTPS address you want the plugin to use.
 
 More Detail can be found here ...
-https://madpenguin.uk/make-me-static/
+https://makemestatic.com/
 
 == Screenshots ==
 
@@ -184,6 +184,12 @@ Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
 
+= 1.1.30 =
+
+UI improvements
+
+* Adding support for Wordpress Playground preview
+* Added live deployment tracking for integrated git/pages
 
 = 1.1.2 =
 
