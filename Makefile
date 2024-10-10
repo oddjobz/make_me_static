@@ -21,6 +21,8 @@ build_playground: set_target_3 build_clean build_base build_php build_vue build_
 
 build_plugin:     set_target_1 build_clean build_base build_php build_vue build_zip
 
+build_dev:        set_target_dev build_clean build_base build_php build_vue build_zip
+
 set_target_1:
 	@echo Setting target to: mms-directory-1
 	@./scripts/set_target.py mms-directory-1
@@ -28,6 +30,10 @@ set_target_1:
 set_target_3:
 	@echo Setting target to: mms-directory-3
 	@./scripts/set_target.py mms-directory-3
+
+set_target_dev:
+	@echo Setting target to: mms-directory-dev
+	@./scripts/set_target.py mms-directory-dev
 
 deploy_playground_zip:
 	$(eval VERSION := $(shell cat scripts/VERSION))

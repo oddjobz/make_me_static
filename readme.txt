@@ -184,6 +184,14 @@ Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
 
+= 1.1.35 =
+
+UI Improvedments
+
+* Changing text and labels for smaller Screens
+* Deployment checking fixes for non SSL targets
+* Fix for local sitemap issue
+
 = 1.1.30 =
 
 UI improvements
