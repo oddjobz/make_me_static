@@ -4,3 +4,8 @@ dist
 .attic
 .vite
 node_modules
+vendor/icamys/php-sitemap-generator/.editorconfig
+vendor/icamys/php-sitemap-generator/.github
+vendor/icamys/php-sitemap-generator/.gitignore
+vendor/icamys/php-sitemap-generator/test
+vendor/icamys/php-sitemap-generator/phpunit.xml

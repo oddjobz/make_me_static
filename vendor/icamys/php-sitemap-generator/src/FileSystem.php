@@ -2,34 +2,34 @@
 
 namespace Icamys\SitemapGenerator;
 
-class FileSystem implements IFileSystem
+class FileSystem
 {
-    public function file_get_contents(string $filepath): bool|string
+    public function file_get_contents($filepath)
     {
         return file_get_contents($filepath);
     }
 
-    public function file_put_contents(string $filepath, mixed $content, int $flags = 0): bool|int
+    public function file_put_contents($filepath, $content, $flags = 0)
     {
         return file_put_contents($filepath, $content, $flags);
     }
 
-    public function file_exists(string $filepath): bool
+    public function file_exists($filepath)
     {
         return file_exists($filepath);
     }
 
-    public function rename(string $oldName, string $newName): bool
+    public function rename($oldname, $newname)
     {
-        return rename($oldName, $newName);
+        return rename($oldname, $newname);
     }
 
-    public function copy(string $source, string $destination): bool
+    public function copy($source, $destination)
     {
         return copy($source, $destination);
     }
 
-    public function unlink(string $filepath): bool
+    public function unlink($filepath)
     {
         return unlink($filepath);
     }

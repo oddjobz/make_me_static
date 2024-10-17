@@ -3,7 +3,7 @@
         'name' => 'madpenguin/make_me_static',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'a890bec1ece90b4cb45ce1757ba4ddab138d16d3',
+        'reference' => '019aeaf460b1097e25ac1d7a581a33c110ba730c',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'icamys/php-sitemap-generator' => array(
-            'pretty_version' => '5.0.0',
-            'version' => '5.0.0.0',
-            'reference' => '18bab7bb96fe278486da9c6efea6b865bd6de58b',
+            'pretty_version' => '4.7.0',
+            'version' => '4.7.0.0',
+            'reference' => '236d8e7de28e9bb3ff028180ab9e3d0fe7c047b8',
             'type' => 'library',
             'install_path' => __DIR__ . '/../icamys/php-sitemap-generator',
             'aliases' => array(),
@@ -22,7 +22,7 @@
         'madpenguin/make_me_static' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'a890bec1ece90b4cb45ce1757ba4ddab138d16d3',
+            'reference' => '019aeaf460b1097e25ac1d7a581a33c110ba730c',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

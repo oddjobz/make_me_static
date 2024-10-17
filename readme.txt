@@ -3,7 +3,7 @@ Contributors: madpenguin
 Tags: static site generator, performance, security, staging, static
 Requires at least: 6.5
 Tested up to: 6.6.1
-Stable tag: 1.1.34
+Stable tag: 1.1.39
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -24,7 +24,7 @@ When you ask the plugin to make a static copy of your site, it will instruct the
 
 The default option is to use a Git account hosted by MadPenguin, and to publish the site on MadPenguin's page hosting platform. As a result the default options do not require any specific Git or Page hosting configuration to get going. If on the other hand you choose to use a hosted Git service such as GitLab, you will need to enter some credentials for your online account, and from there configure your GitLab account to publish to a page hosting service.
 
-Once you have successfully publushed a static copy of your site, all you need to do is point your domain at the address of the page hosting service, and asssuming your domain matches the one you 
+Once you have successfully published a static copy of your site, all you need to do is point your domain at the address of the page hosting service, and asssuming your domain matches the one you 
 entered when setting up your profile within the plugin, you should be up and running.
 
 The service retains a metadata database for the site which includes file names, sizes and modification times, together with any credentials that have been added when creating a profile. (Sensitive credentials and other information is encrypted at rest).  The external service is responsible for all scanning and processing activities to mitigate strain on the Wordpress server.
@@ -45,14 +45,14 @@ Make me static directory service URL's;
 * https://mms-directory-2.madpenguin.uk
 * https://mms-directory-3.madpenguin.uk
 
-These in turn will refererence the crawler allocated to the site in question. Crawler URLs typically take the form https://mms-crawler-(n).madpenguin.uk. For on-premisis crawlers the 
+These in turn will refererence the crawler allocated to the site in question. Crawler URLs typically take the form https://mms-crawler-(n).madpenguin.uk. For on-premesis crawlers the 
 url will also include a customer-id prefix, but will always end in ".madpenguin.uk".
 
-Note that this in an integrated solution, the 3rd party crawling service is owned and operated by the plugin authors on a combination of cloud hosted and on premisis equipment.
+Note that this in an integrated solution, the 3rd party crawling service is owned and operated by the plugin authors on a combination of cloud hosted and on premesis equipment.
 
 ### How Does it work?
 
-The Wordpress site is scanned by the MMS service under direction from the Wordpress plugin. This off-loads the scanning process to specialised software aims to minimise the loading on the Wordpress server while scans are in progress.
+The Wordpress site is scanned by the MMS service under direction from the Wordpress plugin. This off-loads the scanning process to specialised software which aims to minimise the loading on the Wordpress server while scans are in progress.
 
 There are three types of scan that can be performed;
 
@@ -99,10 +99,10 @@ As the site is scanned "from the outside" there should be no risk of the plugins
 * Orbit is a 'real time' framework, so the admin panel is 100% reactive.
   * Progress bar updates are typically "per percent" granularity
   * All statuses, totals, etc, are updated as they happen
-  * Unless you've hit a but, there is no mileage in reloading the MMS plugin page
+  * Unless you've hit a bug, there is no mileage in reloading the MMS plugin page
   * If you change your license information, it will change in real-time
   * If the crawler allocated to your site changes (perhaps due to a license upgrade) then the
-    appriate version of the crawler UI will be uploaded "into" the page from the new
+    appropriate version of the crawler UI will be uploaded "into" the page from the new
     crawler.
 
 == Frequently Asked Questions ==
@@ -125,7 +125,7 @@ For a few examples, take a look at;
 
 = How can I see my published site?
 
-In your plugin, if you look as the "Profiles" view, the first column is labelled "Profile". If you click on the profile name, it will attempt to link to where it thinks your static site should be if it has been published.
+In your plugin, if you look at the "Profiles" view, the first column is labelled "Profile". If you click on the profile name, it will attempt to link to where it thinks your static site should be if it has been published.
 If you are using GitLab, this link should be to the "public URL" entered into your profile. If you are using the default Git option, this link should point to a unique URL on the MadPenguin pages platform.
 
 = How to I point my domain at my new static site?
@@ -183,6 +183,15 @@ https://makemestatic.com/
 Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
+
+= 1.1.38 =
+
+* Fixed PHP components to work with PHP 7.4
+
+= 1.1.36 =
+
+* Fixing typos
+* Fixing UI glitch
 
 = 1.1.35 =
 

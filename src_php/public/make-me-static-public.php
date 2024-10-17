@@ -75,8 +75,12 @@ class make_me_static_Public {
 
 	 private function get_generator ( $tmpdir, $page_size, $nest=false ) {
 		wp_mkdir_p( $tmpdir );	
-		$config = new make_me_static_sitemapconfig ($tmpdir, $nest);
-		$gen = new make_me_static_sitemapgenerator ($config );
+		// if ((PHP_VERSION_ID >= 80000)) {
+		// 	$config = new make_me_static_sitemapconfig ($tmpdir, $nest);
+		// 	$gen = new make_me_static_sitemapgenerator ($config );
+		// } else {
+		$gen = new make_me_static_sitemapgenerator_legacy ( get_site_url (), $tmpdir);
+		// }
 		$gen->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
 		$gen->setMaxURLsPerSitemap($page_size);
 		return $gen;
@@ -236,6 +240,7 @@ class make_me_static_Public {
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
 		$site_url = get_site_url ();
+
 		while (true) {
 			$items = get_posts(array(
 				'post_type' => 'post',
@@ -246,7 +251,6 @@ class make_me_static_Public {
 			foreach ($items as $item) {
 				$date = get_post_datetime($item, 'modified', 'gmt');
 				if ($date > $newest_date) $newest_date = $date;
-
 				$pub = get_post_datetime($item, 'published', 'gmt');
 				$year = $pub->format('Y');
 				$month = $pub->format('m');
@@ -278,7 +282,6 @@ class make_me_static_Public {
 			$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 			$index->addURL($name, DateTime::createFromImmutable($newest_date), 'never', $generator->urlCount(), []);
 		} catch (Exception $e) {
-			return;
 		}
 		$this->flush($tmpdir, $datdir);		
 
@@ -295,7 +298,11 @@ class make_me_static_Public {
 			}
 		}
 		$generator->flush();
-		$generator->finalize();
+		try {
+			$generator->finalize();
+		} catch (Exception $e) {
+			return;
+		}
 		$name = 'make_me_static_sitemap_archives';
 		$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 		$index->addURL($name, DateTime::createFromImmutable($newest_date), 'never', $generator->urlCount(), []);
@@ -499,7 +506,11 @@ class make_me_static_Public {
 			$folders = array_merge($folders, MAKE_ME_STATIC_FOLDER_WLIST);
 		$this->traverse_root($index, $datdir, $folders);
 		$index->flush();
-		$index->finalize();
+		try {
+			$index->finalize();
+		} catch (Exception $e) {
+
+		}
 		$this->flush($tmpdir, $datdir);
 		if (move_dir($datdir, plugin_dir_path( __FILE__ ) . 'data', true) != true) {
 			error_log('Error copying files, check permissions for: '.plugin_dir_path( __FILE__ ) . 'data');
@@ -521,18 +532,14 @@ class make_me_static_Public {
 		global $wp_filesystem;
 		status_header (200);
 		header('Content-Type: application/xml');
+
 		$path1 = plugin_dir_path( __FILE__ ) . 'data/' . str_replace('-','.',$name);
 		$path2 = plugin_dir_path( __FILE__ ) . 'data/sitemap-index.xml';
 		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1));
 		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0));
-		try {
-			if (($last_change > $last_sitemap)||(!$wp_filesystem->exists($path1)&&!$wp_filesystem->exists($path2))) {
-				$this->regenerate_sitemap();
-				update_option ('make-me-static-last', $last_change);
-			}
-		} catch (Exception $e) {
-			echo 'Caught exception: '.esc_html($e->getMessage())."\n";
-			wp_die ('exception in sitemap generator'.esc_html($e->getMessage()));
+		if (($last_change > $last_sitemap)||(!$wp_filesystem->exists($path1)&&!$wp_filesystem->exists($path2))) {
+			$this->regenerate_sitemap();
+			update_option ('make-me-static-last', $last_change);
 		}
 		if ($wp_filesystem->exists($path1)) {
 			include $path1;
@@ -815,5 +822,6 @@ class make_me_static_Public {
 		if (preg_match('/^make_me_static_api_notify_changes-json$/', $name))	return $this->api_notify_changes();
 		if (preg_match('/^make_me_static_sitemap_comments-xml$/', $name))   	return $this->return_comments($name);		
 		if (preg_match('/^make_me_static_sitemap(.*)-xml$/', $name)) 			return $this->return_sitemap($name);
+
 	}
 }
