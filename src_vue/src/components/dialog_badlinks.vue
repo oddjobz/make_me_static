@@ -15,7 +15,7 @@ import { useLogger } from './OrbitLogger.js'
 const routeStore    = useRouteStore();
 const confirm       = useConfirm();
 const log           = useLogger()
-const message       = '<p>It looks like your permalink structure is set to "plain", which does not work well with static sites or with search engines.</p>'+
+const message       = '<p>It looks like your permalink structure is set to <b>plain</b> or <b>dynamic</b>, which does not work well with static sites or with search engines.</p>'+
                         '<p>To resolve this issue, please select one of the following links;</p>'
 const props         = defineProps(['root'])
 const checked       = computed(() => props.checked)
@@ -34,7 +34,7 @@ function doConfirm () {
         message: message,
         header: `Permalinks not Configured`,
         links: [
-            {link: "/wp-admin/options-permalink.php"        , html: "Select a Permalink structure other than 'plain'"},
+            {link: "/wp-admin/options-permalink.php"        , html: "Select a Permalink structure, not 'plain' or '/index.php'"},
             {link: "mailto:support@madpenguin.uk"           , html: "Email our Support department"},
             {link: "https://support.madpenguin.uk"          , html: "Get Help via our Support Forums"}
         ],

@@ -2,7 +2,7 @@
 <!-- Scoped CSS only, see theme.css and admin.css for globally scoped CSS -->
 
 <template>
-    <div style="text-align:center;position:fixed;bottom:5vh;right:1vh;z-index:9999">
+    <div id="support-logo" style="text-align:center;position:fixed;bottom:5vh;right:1vh;z-index:9999">
         <a href="https://support.madpenguin.uk" target="_blank">
             <img src="https://madpenguin.uk/wp-content/uploads/2024/07/support-logo.png" />
         </a>
@@ -72,6 +72,7 @@ import ProgressSpinner from 'primevue/progressspinner';
 import { defineComponent, ref, watch, computed, inject, onMounted, toRaw, readonly } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLogger } from './OrbitLogger.js'
+import pkg from '../../package.json';
 import TermsAndConditions from "@/components/dialog_terms.vue";
 import AccountDisabled from "@/components/dialog_disabled.vue";
 import NotAllowed from "@/components/dialog_notallowed.vue";
@@ -347,6 +348,7 @@ function loadCrawler () {
     //
     const url = new URL(route.value.url);
     url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
+    url.search = 'ver=' + pkg.version
     //
     //  This is our (very simple but effective) loader
     //

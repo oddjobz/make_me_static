@@ -513,7 +513,7 @@ class make_me_static_Public {
 		}
 		$this->flush($tmpdir, $datdir);
 		if (move_dir($datdir, plugin_dir_path( __FILE__ ) . 'data', true) != true) {
-			error_log('Error copying files, check permissions for: '.plugin_dir_path( __FILE__ ) . 'data');
+			// error_log('Error copying files, check permissions for: '.plugin_dir_path( __FILE__ ) . 'data');
 			exit;
 		}
 	}
@@ -661,12 +661,12 @@ class make_me_static_Public {
 		else
 			$meta = array();
 		if (!isset($meta[$host_id])) {
-			error_log ('Host ID invalid: '.$host_id);
+			// error_log ('Host ID invalid: '.$host_id);
 			return false;
 		}
 		$manager = WP_Session_Tokens::get_instance( $user_id );
 		if (!$manager->verify( $meta[$host_id] )) {
-			error_log ('Session token invalid: '.$meta[$host_id]);
+			// error_log ('Session token invalid: '.$meta[$host_id]);
 			return false;
 		}
 		return true;

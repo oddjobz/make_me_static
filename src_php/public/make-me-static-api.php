@@ -139,12 +139,12 @@ class make_me_static_api {
 		else
 			$meta = array();
 		if (!isset($meta[$host_id])) {
-			error_log ('Host ID invalid: '.$host_id);
+			// error_log ('Host ID invalid: '.$host_id);
 			return false;
 		}
 		$manager = WP_Session_Tokens::get_instance( $user_id );
 		if (!$manager->verify( $meta[$host_id] )) {
-			error_log ('Session token invalid: '.$meta[$host_id]);
+			// error_log ('Session token invalid: '.$meta[$host_id]);
 			return false;
 		}
 		return true;
@@ -197,8 +197,9 @@ class make_me_static_api {
 		//	Also check the permalink structure is ok
 		//
 		$permalink_structure = get_option( 'permalink_structure' );
+		$result = empty($permalink_structure) || str_starts_with ($permalink_structure, '/index.php') ? 'plain' : 'ok';
 		//
-		return new WP_REST_Response( array( 'message' => 'Ok, session registered', 'permalink' => empty($permalink_structure) ? 'plain' : 'ok' ), 200);
+		return new WP_REST_Response( array( 'message' => 'Ok, session registered', 'permalink' => $result ), 200);
 	}
 
 	/**

@@ -1,13 +1,13 @@
-=== Make Me Static, Static Site Generator for Git publication ===
+=== Make Me Static, Static Site Generator, Git, Pages and Live Stats ===
 Contributors: madpenguin
-Tags: static site generator, performance, security, staging, static
+Tags: static site generator, performance, security, stats, static
 Requires at least: 6.5
 Tested up to: 6.6.1
-Stable tag: 1.1.39
+Stable tag: 1.1.42
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-This plugin is a static site generator for your Wordpress instance that stores and updates a static version of your site inside a Git repository.
+Static site generator using Git for storage. Comes with free integrated Git + Pages solution including Live WebStats.
 
 == Description ==
 
@@ -49,6 +49,15 @@ These in turn will refererence the crawler allocated to the site in question. Cr
 url will also include a customer-id prefix, but will always end in ".madpenguin.uk".
 
 Note that this in an integrated solution, the 3rd party crawling service is owned and operated by the plugin authors on a combination of cloud hosted and on premesis equipment.
+
+### Live Web Statistics (*experimental*)
+
+If you opt to use the integrated Pages platform, this also provides a live WebStats option that uses the following URL;
+
+* https://weblogs.makemestatic.com
+
+This allows live webstats to be seamlessly delivered into your control panel and updated in real-time via a websocket connection. Do not use this URL directly!
+This URL is only referenced once you click on the webstats icon next to your profile.
 
 ### How Does it work?
 
@@ -173,16 +182,54 @@ In your "wp-config.php" file, you need to add a define section, in this example 
 
 * No. Your site will need at least to have a front-end HTTPS front-end. Always make sure your site address in Settings -> General reflects the HTTPS address you want the plugin to use.
 
+= Does this work with Plain permalinks?
+
+* No, if you have a .php file in your link, this site will not work well as a static site. A good choice is something based just on the post name, time, date etc.
+
+= How do I see my Live WebStats for Free?
+
+* Live WebStats are a fearure of the MakeMeStatic Pages platform, so to see live webstats on your console you will need to;
+  - Select the "default" git option
+  - Sync your site so you have a static copy
+  - Point a REAL domain at your site by verifying your email address (subscription button)
+  - Add your domain name to your profile
+  - Click on "verify" next to the domain
+  - Add the two DNS records listed to your DNS setup
+  - Click verify, assuming this works, you should be good to go
+  - There should be a green Stats button next to your profile
+  .. access your new domain name and wait 10-15 seconds for the stats to become available
+
+
 More Detail can be found here ...
 https://makemestatic.com/
 
 == Screenshots ==
 
-1. Screenshot of the main admin page
+1. Dashboard, Profiles
+2. Setup Wizard Frame, Intro
+3. Setup Wizard Frame, Site Details
+4. Setup Wizard Frame, Operating Instructions
+5. Setup Wizard Frame, Verification
+6. Setup Wizard Frame, Ready
+7. Dashboard, Live Web Stats (wide view)
+8. Dashboard, Partial Live Stats detail
 
 Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
+
+= 1.1.42 =
+
+* Typos, remove redundant debugging
+
+= 1.1.41 =
+
+* Fixed a number of crawler edge-cases
+* Crawler speed improvements
+* Added integrated / Live WebStats into the console
+* Improved UI Error reporting
+* Fixed UI Setup Wizard glitch
+* Improved permalink detection code
 
 = 1.1.38 =
 
