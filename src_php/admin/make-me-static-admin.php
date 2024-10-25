@@ -58,7 +58,7 @@ class make_me_static_Admin {
 	 *  
 	 */
 
-	private $directory = 'https://mms-directory-2.madpenguin.uk/';
+	private $directory = 'https://mms-directory-1.madpenguin.uk/';
 
 	/**
 	 * Initialize the class and set its properties.
@@ -123,7 +123,7 @@ class make_me_static_Admin {
 		 */
 
 		function make_me_static_init() {
-			print_r("<div class='mm-static-main'><div id='make-me-static-directory'></div></div>");
+			echo "<div class='mm-static-main'><div id='make-me-static-directory'></div></div>";
 		}
 
 	}
@@ -149,9 +149,9 @@ class make_me_static_Admin {
 	 */
 	public function enqueue_scripts() {
 		if (get_current_screen()->base == 'toplevel_page_make-me-static') {
-			$path = str_contains( $this->directory, '-dev') ? 'src/main.js' : 'index.js';
+			$path = str_contains( $this->directory, '-dev') ? $this->directory.'src/main.js?ver='.$this->version : '/wp-content/plugins/make-me-static/admin/js/index.js?ver='.$this->version;
 			$my_id = $this->plugin_name.'-directory';
-			wp_enqueue_script( $my_id, $this->directory.$path, array(), $this->version);
+			wp_enqueue_script( $my_id, $path, array(), $this->version);
 			add_filter('script_loader_tag', function($tag, $handle) use ($my_id) {
 				if ( $handle === $my_id) {
 					$tag = str_replace( '<script ', '<script type="module" ', $tag );

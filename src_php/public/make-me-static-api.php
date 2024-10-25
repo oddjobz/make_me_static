@@ -139,12 +139,12 @@ class make_me_static_api {
 		else
 			$meta = array();
 		if (!isset($meta[$host_id])) {
-			error_log ('Host ID invalid: '.$host_id);
+			// error_log ('Host ID invalid: '.$host_id);
 			return false;
 		}
 		$manager = WP_Session_Tokens::get_instance( $user_id );
 		if (!$manager->verify( $meta[$host_id] )) {
-			error_log ('Session token invalid: '.$meta[$host_id]);
+			// error_log ('Session token invalid: '.$meta[$host_id]);
 			return false;
 		}
 		return true;
@@ -193,7 +193,13 @@ class make_me_static_api {
 		//	Make sure host_id is available and update it's stamp if it already exists
 		//
 		$this->update_metadata ( sanitize_text_field($request->get_param( 'host_id' )));
-		return new WP_REST_Response( array( 'message' => 'Ok, session registered' ), 200);
+		//
+		//	Also check the permalink structure is ok
+		//
+		$permalink_structure = get_option( 'permalink_structure' );
+		$result = empty($permalink_structure) || str_starts_with ($permalink_structure, '/index.php') ? 'plain' : 'ok';
+		//
+		return new WP_REST_Response( array( 'message' => 'Ok, session registered', 'permalink' => $result ), 200);
 	}
 
 	/**
@@ -240,9 +246,9 @@ class make_me_static_api {
 	public function api_notify_changes () {
 		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1))->format('c');
 		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0))->format('c');
-		return array([
+		return array(
 			'last_change' => $last_change,
 			'last_sitemap' => $last_sitemap
-		]);
+		);
 	}
 }

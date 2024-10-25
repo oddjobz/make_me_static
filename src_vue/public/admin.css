@@ -299,7 +299,7 @@ div.mm-static-main span.status-uptodate  {
     top: -2px;
     font-weight: 600;
     margin-left: 0.5em;
-    font-size: 0.7em;
+    font-size: 0.6em;
     padding-left: 8px;
     padding-right: 8px;
     padding-top: 2px;
@@ -348,6 +348,12 @@ body {
    -moz-osx-font-smoothing: grayscale;
  }
  
+input[type=checkbox], input[type=radio] {
+    width: 100%!important;
+    height: 100%!important;
+    margin: 0!important;
+}
+
  ::-webkit-scrollbar-thumb {
    background-color: #80d4ff;
    border-radius: 10px;

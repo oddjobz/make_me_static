@@ -28,14 +28,7 @@ class GoogleVideoExtension
         'tv',
     ];
 
-    /**
-     * @param XMLWriter $xmlWriter
-     * @param string $loc
-     * @param array $extFields
-     * @return void
-     * @throws InvalidArgumentException
-     */
-    public static function writeVideoTag(XMLWriter $xmlWriter, string $loc, array $extFields): void
+    public static function writeVideoTag(XMLWriter $xmlWriter, string $loc, array $extFields)
     {
         self::validate($loc, $extFields);
 
@@ -124,9 +117,6 @@ class GoogleVideoExtension
         $xmlWriter->endElement();
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public static function validate($loc, $extFields)
     {
         $extFieldNames = array_keys($extFields);
@@ -197,7 +187,7 @@ class GoogleVideoExtension
                 throw new InvalidArgumentException('Invalid platform.relationship value. Allowed values are allow or deny.');
             }
             if (!isset($extFields['platform']['value'])) {
-                throw new InvalidArgumentException('Value platform.value is required.');
+                throw new InvalidArgumentException('Value platform.value is required');
             }
 
             $platformValues = explode(' ', $extFields['platform']['value']);
@@ -206,7 +196,7 @@ class GoogleVideoExtension
                 throw new InvalidArgumentException(
                     'Invalid platform.relationship value. ' .
                     'Expecting a list of space-delimited platform types: ' .
-                    implode(', ', self::$platforms) . '.'
+                    implode(', ', self::$platforms)
                 );
             }
         }

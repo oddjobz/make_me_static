@@ -34,7 +34,6 @@
                     class="p-dialog-header-icon" type="button" icon="pi pi-times-circle" severity="primary" @click="onHide" size="large"></Button>
                 </div>
             </template>
-
             <ConfirmDialog group="templating">
                 <template #message="slotProps">
                     <div class="flex flex-col items-center w-full gap-4 border-b border-surface-200 dark:border-surface-700">
@@ -43,7 +42,6 @@
                     </div>
                 </template>
             </ConfirmDialog>
-
             <ConfirmDialog group="okbox" class="okbox">
                 <template #message="slotProps">
                     <div class="flex flex-col items-center w-full gap-4 border-b border-surface-200 dark:border-surface-700">
@@ -52,7 +50,6 @@
                     </div>
                 </template>
             </ConfirmDialog>
-
             <div v-show="loading" style="width:100%;height: 527px;display:flex" class="justify-center">
                 <div class="spin-wrapper" v-if="!error">
                     <div class="spinner">
@@ -67,7 +64,6 @@
                     </div>
                 </div>
             </div>
-
             <div v-show="!loading && visible">
                 <div v-if="!verified">
                     <Card class="dialog-body">
@@ -311,23 +307,21 @@ const root              = computed(() => opt.router  ? opt.router.currentRoute.v
 const selected          = ref(null)
 const products          = ref({})
 const product           = computed(() => products.value[selected.value])
-const pub_api_key       = 'pk_test_51NkrJjDv2TmnMK2SfOtBgE9flxv2KGDjQzVbhmrHBHifzTiwqU0vZv5yRvh1P7YWnKGTirF1n0q4hYzblL2BEaRA00HdcIBgDL'
+// const pub_test_key      = 'pk_test_51NkrJjDv2TmnMK2SfOtBgE9flxv2KGDjQzVbhmrHBHifzTiwqU0vZv5yRvh1P7YWnKGTirF1n0q4hYzblL2BEaRA00HdcIBgDL'
+// const pub_live_key      = 'pk_live_51NkrJjDv2TmnMK2So1XB7ChHMcqu6tU0c2gckj1tR3dwOpCfmCA2rSaGKpwxzEn4iZLrIkF8t64h2oDxshBWpvvi00IozMlYC2'
 const checkout          = ref(null)
 const product_desc      = computed(() => products.value ? (selected.value in products.value ? products.value[selected.value].desc : '') : '')
 const change_prod       = computed(() => current_prod.value != selected.value)
 const current_prod      = ref(null)
 const loading           = ref(true)
-const verified          = computed(() => {
-    log.info ('verified:', route.value ? route.value.verified : undefined)
-    log.info ('change:', email_change.value)
-    return route.value && !email_change.value ? route.value.verified : false
-})
+const verified          = computed(() => route.value && !email_change.value ? route.value.verified : false)
 const error             = ref(null)
 const email             = ref('')
 const email_ref         = ref('')
 const email_change      = ref(false)
 const route             = computed(() => route_data.value.get(route_ids.value[0]))
 const changed           = computed(() => current_prod.value && selected.value ? current_prod.value != selected.value : false)
+
 const new_plan          = computed(() => selected.value)
 const new_price         = computed(() => selected.value in products.value ? products.value[selected.value].currency : '')
 const current_plan      = computed(() => route.value ? route.value.plan : '')
@@ -349,6 +343,8 @@ const days_since        = computed(() => {
 const wizard_image      = computed(() => pkg.parameters.host + '/wizard.jpeg')
 const isEmailValid      = computed(() => (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.value)))
 const approved          = computed(() => route.value.approved ? true : false )
+// const pub_api_key       = computed(() => pkg.parameters.host.includes('-dev.') ? pub_test_key : pub_live_key)
+const pub_api_key       = ref(null)
 
 function onShow () {
     setTimeout(() => {
@@ -393,6 +389,7 @@ watch (current_plan, (value) => {
     selected.value = value
 })
 watch (socket, () => {
+
     loadProducts()
 })
 watch (authenticated, () => {
@@ -420,7 +417,16 @@ function loadProducts () {
     if (Object.keys(products.value).length) return
     if (!products.value.length) {
         log.info ('Loading product catalogue from Stripe')
-        subsStore.init(app, root.value, socket.value).populate(root.value, (response) => {
+        subsStore.init(app, root.value, socket.value)
+        subsStore.call (root.value, 'recover_stripe_key', {} , (response) => {
+            if (!response||!response.ok) {
+                error.value = 'Error calling "recover_stripe_key", please email support@madpenguin.uk'
+                return
+            }
+            log.info (response.pub_api_key.includes ('pk_test') ? 'Stripe in in TEST mode' : 'Stripe is in LIVE mode')
+            pub_api_key.value = response.pub_api_key
+        })
+        subsStore.populate(root.value, (response) => {
             response.items.map((item) => {
                 products.value[item.name] = {
                     'cost': item.price,
@@ -466,7 +472,6 @@ function onClickChange () {
             setLoading()
             let params = {plan: new_plan.value, price_id: product.value.id}
             subsStore.call (root.value, 'change_subscription', params, (response) => {
-                log.info (response)
                 if (!response||!response.ok) error.value = 'Error calling "change subscription", please contact support@madpenguin.uk'
                 else clrLoading()
                 selected.value = current_plan.value
@@ -477,6 +482,7 @@ function onClickChange () {
         }
     });
 }
+
 function onClickReinstate () {
     log.info('Reinstate Subscription')
     let message = '<div style="padding-left: 1em;padding-right:1em;max-width:550px">'+
@@ -531,10 +537,11 @@ async function onClickChangePayment () {
     const onFormComplete = async (args) => {
         formReset()
     }
-    const stripe = Stripe(pub_api_key)
+    const stripe = Stripe(pub_api_key.value)
     checkout.value = await stripe.initEmbeddedCheckout({fetchClientSecret, onComplete: onFormComplete})
     checkout.value.mount( '#checkout' )
 }
+
 function formReset () {
     if (checkout.value) {
         checkout.value.unmount( '#checkout')
@@ -551,7 +558,7 @@ function onClickProduct (key) {
     if ((current_prod.value != 'free') && (key != 'free')) {
         let old_cost = parseFloat(products.value[current_prod.value].cost)
         let new_cost = parseFloat(products.value[key].cost)
-        log.warning ('Old=', old_cost, ' New=', new_cost, ' Days=', days_since.value, ' Bool=', new_cost < old_cost)
+        // log.warning ('Old=', old_cost, ' New=', new_cost, ' Days=', days_since.value, ' Bool=', new_cost < old_cost)
         if ((new_cost < old_cost) && (days_since.value < 2)) {
             log.warn ('Attempt to downgrade too soon!')
             confirm.require({
@@ -575,7 +582,7 @@ async function startSubscription () {
         current_prod.value = selected.value
         formReset()
     }
-    const stripe = Stripe(pub_api_key)
+    const stripe = Stripe(pub_api_key.value)
     checkout.value = await stripe.initEmbeddedCheckout({fetchClientSecret, onComplete: onFormComplete})
     checkout.value.mount( '#checkout' )
 }

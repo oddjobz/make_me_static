@@ -2,9 +2,6 @@
     "name": "madpenguin/make_me_static",
     "description": "Wordpress plugin to facilitate the generation of static copies of a WP site",
     "type": "project",
-    "require": {
-        "icamys/php-sitemap-generator": "^5.0"
-    },
     "license": "GPL2",
     "autoload": {
         "psr-4": {
@@ -17,5 +14,8 @@
             "email": "gareth@madpenguin.uk"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "require": {
+        "icamys/php-sitemap-generator": "^4.6.0"
+    }
 }

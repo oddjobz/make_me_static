@@ -73,10 +73,14 @@ class make_me_static_Public {
 	 * 
 	 */
 
-	 private function get_generator ( $tmpdir, $page_size ) {
+	 private function get_generator ( $tmpdir, $page_size, $nest=false ) {
 		wp_mkdir_p( $tmpdir );	
-		$config = new make_me_static_sitemapconfig ($tmpdir);
-		$gen = new make_me_static_sitemapgenerator ($config );
+		// if ((PHP_VERSION_ID >= 80000)) {
+		// 	$config = new make_me_static_sitemapconfig ($tmpdir, $nest);
+		// 	$gen = new make_me_static_sitemapgenerator ($config );
+		// } else {
+		$gen = new make_me_static_sitemapgenerator_legacy ( get_site_url (), $tmpdir);
+		// }
 		$gen->setSitemapStylesheet('wp-content/plugins/make-me-static/public/sitemap.xsl');
 		$gen->setMaxURLsPerSitemap($page_size);
 		return $gen;
@@ -188,7 +192,7 @@ class make_me_static_Public {
 	private function include_items ( $items, $datdir, $index, $type) {
 		global $wp_filesystem;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		$generator = $this->get_generator ( $tmpdir, 100 );
+		$generator = $this->get_generator ( $tmpdir, 100, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0); 
@@ -231,11 +235,12 @@ class make_me_static_Public {
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
 
-		$generator = $this->get_generator ( $tmpdir, $page_size );
+		$generator = $this->get_generator ( $tmpdir, $page_size, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
 		$site_url = get_site_url ();
+
 		while (true) {
 			$items = get_posts(array(
 				'post_type' => 'post',
@@ -246,7 +251,6 @@ class make_me_static_Public {
 			foreach ($items as $item) {
 				$date = get_post_datetime($item, 'modified', 'gmt');
 				if ($date > $newest_date) $newest_date = $date;
-
 				$pub = get_post_datetime($item, 'published', 'gmt');
 				$year = $pub->format('Y');
 				$month = $pub->format('m');
@@ -278,7 +282,6 @@ class make_me_static_Public {
 			$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 			$index->addURL($name, DateTime::createFromImmutable($newest_date), 'never', $generator->urlCount(), []);
 		} catch (Exception $e) {
-			return;
 		}
 		$this->flush($tmpdir, $datdir);		
 
@@ -295,7 +298,11 @@ class make_me_static_Public {
 			}
 		}
 		$generator->flush();
-		$generator->finalize();
+		try {
+			$generator->finalize();
+		} catch (Exception $e) {
+			return;
+		}
 		$name = 'make_me_static_sitemap_archives';
 		$name = $wp_filesystem->exists($tmpdir.'/'.$name .'.xml') ? '/'.$name.'.xml' : '/'.$name.'_index.xml';
 		$index->addURL($name, DateTime::createFromImmutable($newest_date), 'never', $generator->urlCount(), []);
@@ -358,7 +365,7 @@ class make_me_static_Public {
 		$type = 'categories';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		$generator = $this->get_generator ( $tmpdir, $page_size );
+		$generator = $this->get_generator ( $tmpdir, $page_size, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = $this->include_subcategories ($datdir, $index, $generator, '', '/category');
@@ -389,7 +396,7 @@ class make_me_static_Public {
 		$type = 'tags';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		$generator = $this->get_generator ( $tmpdir, $page_size );
+		$generator = $this->get_generator ( $tmpdir, $page_size, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
@@ -439,7 +446,7 @@ class make_me_static_Public {
 		$type = 'authors';
 		$page_size = 100;
 		$tmpdir = sys_get_temp_dir() . '/' . uniqid('mms_');
-		$generator = $this->get_generator ( $tmpdir, $page_size );
+		$generator = $this->get_generator ( $tmpdir, $page_size, true );
 		$generator->setSitemapFileName("make_me_static_sitemap_" . $type . ".xml");
 		$generator->setSitemapIndexFileName("make_me_static_sitemap_" . $type ."_index.xml");
 		$newest_date = (new DateTime())->setTimestamp(0);
@@ -499,10 +506,14 @@ class make_me_static_Public {
 			$folders = array_merge($folders, MAKE_ME_STATIC_FOLDER_WLIST);
 		$this->traverse_root($index, $datdir, $folders);
 		$index->flush();
-		$index->finalize();
+		try {
+			$index->finalize();
+		} catch (Exception $e) {
+
+		}
 		$this->flush($tmpdir, $datdir);
 		if (move_dir($datdir, plugin_dir_path( __FILE__ ) . 'data', true) != true) {
-			error_log('Error copying files, check permissions for: '.plugin_dir_path( __FILE__ ) . 'data');
+			// error_log('Error copying files, check permissions for: '.plugin_dir_path( __FILE__ ) . 'data');
 			exit;
 		}
 	}
@@ -521,6 +532,7 @@ class make_me_static_Public {
 		global $wp_filesystem;
 		status_header (200);
 		header('Content-Type: application/xml');
+
 		$path1 = plugin_dir_path( __FILE__ ) . 'data/' . str_replace('-','.',$name);
 		$path2 = plugin_dir_path( __FILE__ ) . 'data/sitemap-index.xml';
 		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1));
@@ -538,7 +550,7 @@ class make_me_static_Public {
 			die;
 		}
 		status_header (404);
-		die;
+		wp_die ('failed to find sitemap file');
 	}
 
 	/**
@@ -594,6 +606,207 @@ class make_me_static_Public {
 	}
 
 	/**
+	 * 
+	 * 	update_metadata - record the session token against our host_id in the
+	 *  metadata for this user. Expire any old host_id's for which the session
+	 *  token has expired or is no longer valid.
+	 * 
+	 * @since		1.0.248
+	 * @access   	private
+	 * @param       string    $host_id       The Make_Me_Static host_id
+	 * 
+	 */
+
+	 private function update_metadata ( $host_id ) {
+		//
+		//	Get the array of host_id's for this user
+		//
+		$user_id = wp_get_current_user()->ID;
+		$session_token = wp_get_session_token();
+		$meta = get_user_meta ( $user_id , 'make_me_static_host_ids' );
+		if ($meta)
+			$meta = $meta[0];
+		else
+			$meta = array();
+		//
+		//	Clean any expired sessions
+		//
+		$manager = WP_Session_Tokens::get_instance( $user_id );
+		$meta = array_filter( $meta, function( $token ) use ( $manager ) {
+			return $manager->verify( $token );
+		});
+		//
+		//	Update the stamp and save ...
+		//
+		$meta[$host_id] = $session_token;
+		update_user_meta ( $user_id, 'make_me_static_host_ids', $meta );
+	}
+
+	/**
+	 * 
+	 * 	Determine is the host_id has previously been validated for this user_id
+	 * 
+	 * @since		1.0.248
+	 * @access   	private
+	 * @param       string    $user_id       The Wordpress user_id
+	 * @param       string    $host_id       The Make_Me_Static host_id
+	 * @return    	boolean   				 Whether the user/host combination is currently valid
+	 * 
+	 */
+
+	private function is_host_id_valid ( $user_id, $host_id ) {
+		$meta = get_user_meta ( $user_id , 'make_me_static_host_ids' );
+		if ($meta)
+			$meta = $meta[0];
+		else
+			$meta = array();
+		if (!isset($meta[$host_id])) {
+			// error_log ('Host ID invalid: '.$host_id);
+			return false;
+		}
+		$manager = WP_Session_Tokens::get_instance( $user_id );
+		if (!$manager->verify( $meta[$host_id] )) {
+			// error_log ('Session token invalid: '.$meta[$host_id]);
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Legacy version if API notify changes
+	 *
+	 * @since		1.0.248
+	 * @access   	public
+	 * 
+	 */
+
+	private function api_notify_changes () {
+		$last_change = get_option ('make-me-static-change', (new DateTime())->setTimestamp(1))->format('c');
+		$last_sitemap = get_option ('make-me-static-last', (new DateTime())->setTimestamp(0))->format('c');
+		wp_send_json(array(
+			'last_change' => $last_change,
+			'last_sitemap' => $last_sitemap
+		), 200);
+	}
+
+	/**
+	 * Validation service for MMS to use.
+	 * 
+	 * MMS Will send a UUID, USER and HOST_ID, we're just going to look it up in our
+	 * metadata and return whether the HOST_ID is valid on this site a current admin session.
+	 * It's effectively an anonymous service so no user restrictions or nonce's apply.
+	 * 
+	 * All it does is return a 200 or 403, the Plugin checker gives a warning, it should not!
+	 *
+	 * @since		1.0.248
+	 * @access   	private
+	 * @param		site, host_id, user 
+	 * @return    	WP_REST_Response 		  200 if Ok or 403 if unauthorized, 500 on error
+	 * 
+	 */
+
+	 private function api_validate_host () {
+		//
+		//	Note on NONCE: this is a fall-back routine which was initially implemented
+		//	using the Wordpress API. The problem is that out in the Wild the API rarely
+		//	seems to work as people either disable it, make it authenticated only, or
+		//	mess with query strings to break it.
+		//
+		//	This routine is called by the MMS back-end to make sure "it" is allowed
+		//	to crawl the site. There is ZERO risk for Wordpress, so it REALLY does
+		//	not neet a nonce - there is no NONCE, MMS can crawl when nobody is logged in.
+		//  I see complaints from people complaining that forcing nonce verification is 
+		//	annoying, and other people saying it's "required".
+		//
+		//	It some cases, it's just not. I understand the "use the API", and I try, but
+		//	if it doesn't work, the choice is removed. It would be nice if there was a 
+		//	little acceptance that real world operation does not always == what would
+		//	be nice in theory.
+		//
+		//	Incoming parameters include the site (a uuid) and host_id and user
+		//
+		if (!isset($_GET['site'])) // phpcs:ignore
+			wp_send_json(array( 'message' => 'Missing a site parameter' ), 500);
+		$site = sanitize_text_field(wp_unslash($_GET['site'])); // phpcs:ignore
+
+		if (!isset($_GET['host_id'])) // phpcs:ignore
+			wp_send_json(array( 'message' => 'Missing a host parameter' ), 500);
+		$host = sanitize_text_field(wp_unslash($_GET['host_id'])); // phpcs:ignore
+
+		if (!isset($_GET['user'])) // phpcs:ignore
+			wp_send_json(array( 'message' => 'Missing a user parameter' ), 500);
+		$user = sanitize_text_field(wp_unslash($_GET['user'])); // phpcs:ignore
+		//
+		//	Make sure this request is for us ...
+		//
+		if (get_option ('make-me-static-uuid', false) != $site)
+			wp_send_json(array( 'message' => 'Request was for the wrong domain: '.$site ), 403);
+		//
+		//	Check the metadata to see if there is a valid session for this user/host_id
+		//
+		if ($this->is_host_id_valid (sanitize_text_field($user), sanitize_text_field($host)))
+			wp_send_json( array( 'message' => 'Ok, host_id attached to a valid session' ), 200);
+		wp_send_json( array( 'message' => 'Session invalid or expired' ), 403);
+	}
+
+	/**
+	 * Register the current session. MMS identifies users via "host_id" which is 
+	 * negotiated via a public key encryptione exchange between the app and MMS.
+	 * Once the app has a valid HOST_ID it stores it here so MMS can make sure
+	 * it's session was initiated my an admin user for this site. Effectively a
+	 * form of MMS nonse.
+	 *
+	 * @since		1.0.248
+	 * @access   	private
+	 * @param		$_GET['site']	
+	 * @param		$_GET['host_id']
+	 * @return    	WP_REST_Response 		200 if Ok or 401 if not admin or 403 if unauthorized
+	 * 
+	 */
+
+	 private function api_register_host () {
+		//
+		//	Verify the nonce
+		//
+		if (!isset($_SERVER['X-Wp-Nonce']))
+			wp_send_json(array('message'=>'Missing nonce'),500);
+		$nonce = sanitize_text_field(wp_unslash($_SERVER['X-Wp-Nonce']));
+		if (!wp_verify_nonce($nonce, 'wp-rest'))
+			wp_die ('bad nonce');
+		//
+		//	Incoming parameters include the site (a uuid) and host_id
+		//
+		if (!isset($_GET['site']))
+			wp_send_json(array( 'message' => 'Missing a site parameter' ), 500);
+		$site = sanitize_text_field(wp_unslash($_GET['site']));
+
+		if (!isset($_GET['host_id']))
+			wp_send_json(array( 'message' => 'Missing a host parameter' ), 500);
+		$host = sanitize_text_field(wp_unslash($_GET['host_id']));
+		//
+		//	Needs to be an admin session
+		//
+		if (!current_user_can('administrator'))
+			wp_send_json( array( 'message' => 'Request was for not authorized: '.$site ), 401);
+		//
+		//	Make sure this request is for us ...
+		//
+		if (get_option ('make-me-static-uuid', false) != $site)
+			wp_send_json( array( 'message' => 'Request was for the wrong domain: '.$site ), 403);
+		//
+		//	Make sure host_id is available and update it's stamp if it already exists
+		//
+		$this->update_metadata ( $host );
+		//
+		//	Also check the permalink structure is ok
+		//
+		$permalink_structure = get_option( 'permalink_structure' );
+		//
+		wp_send_json( array( 'message' => 'Ok, session registered', 'permalink' => empty($permalink_structure) ? 'plain' : 'ok' ), 200);
+	}
+
+
+	/**
 	 * Install redirects for our dynamically generated pages
 	 *
 	 * @since		0.9.0
@@ -604,8 +817,11 @@ class make_me_static_Public {
 	public function make_me_static_template_redirect () {
 		global $wp_query;
 		$name = $wp_query->query_vars['name'];
+		if (preg_match('/^make_me_static_api_register_host-json$/', $name))		return $this->api_register_host();
+		if (preg_match('/^make_me_static_api_validate_host-json$/', $name))		return $this->api_validate_host();
+		if (preg_match('/^make_me_static_api_notify_changes-json$/', $name))	return $this->api_notify_changes();
+		if (preg_match('/^make_me_static_sitemap_comments-xml$/', $name))   	return $this->return_comments($name);		
+		if (preg_match('/^make_me_static_sitemap(.*)-xml$/', $name)) 			return $this->return_sitemap($name);
 
-		if (preg_match('/^make_me_static_sitemap_comments-xml$/', $name))   return $this->return_comments($name);		
-		if (preg_match('/^make_me_static_sitemap(.*)-xml$/', $name)) 		return $this->return_sitemap($name);
 	}
 }

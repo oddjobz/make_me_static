@@ -1,3 +1,5 @@
+[![WP compatibility](https://plugintests.com/plugins/wporg/make-me-static/wp-badge.svg)](https://plugintests.com/plugins/wporg/make-me-static/latest) [![PHP compatibility](https://plugintests.com/plugins/wporg/make-me-static/php-badge.svg)](https://plugintests.com/plugins/wporg/make-me-static/latest)
+
 # Make Me Static - Plugin for Wordpress
 
 Welcome to the Make Me Static Plugin for Wordpress. This software aims to create and 
@@ -159,3 +161,5 @@ Wordpress so the security footprint of the plugin is tiny.
 
 More Detail can be found here ...
 https://madpenguin.uk/make-me-static/
+
+MR

@@ -20,7 +20,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/make-me-static-deactivator.
  * Currently plugin version.
  */
 
-define( 'MAKE_ME_STATIC_VERSION', '1.0.144' );
+define( 'MAKE_ME_STATIC_VERSION', '1.1.42' );
 
 /**
  * Plugin bootstrap file
@@ -30,10 +30,10 @@ define( 'MAKE_ME_STATIC_VERSION', '1.0.144' );
  * @package		make-me-static
  *
  * @wordpress-plugin
- * Plugin Name:       	Make Me Static
+ * Plugin Name:       	Make Me Static, Static Site Generator, Git, Pages and Live Stats
  * Plugin URI:        	https://madpenguin.uk/make-me-static
  * Description:       	Provide admin resources for the Make Me Static Crawler
- * Version:           	1.0.144
+ * Version:           	1.1.42
  * Requires at least: 	6.5
  * Requires PHP:      	7.0
  * Author:            	Mad Penguin Consulting Ltd

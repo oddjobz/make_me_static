@@ -9,7 +9,6 @@ use Icamys\SitemapGenerator\Extensions\GoogleVideoExtension;
 use InvalidArgumentException;
 use OutOfRangeException;
 use RuntimeException;
-use UnexpectedValueException;
 use XMLWriter;
 
 /**
@@ -52,24 +51,24 @@ class SitemapGenerator
      * @var string
      * @access public
      */
-    private string $robotsFileName = "robots.txt";
+    private $robotsFileName = "robots.txt";
     /**
      * Name of sitemap file
      * @var string
      * @access public
      */
-    private string $sitemapFileName = "sitemap.xml";
+    private $sitemapFileName = "sitemap.xml";
     /**
      * Name of sitemap index file
      * @var string
      * @access public
      */
-    private string $sitemapIndexFileName = "sitemap-index.xml";
+    private $sitemapIndexFileName = "sitemap-index.xml";
     /**
      * Sitemap Stylesheet link.
      * @var string
      */
-    private string $sitemapStylesheetLink = "";
+    private $sitemapStylesheetLink = "";
     /**
      * Quantity of URLs per single sitemap file.
      * If Your links are very long, sitemap file can be bigger than 10MB,
@@ -77,7 +76,7 @@ class SitemapGenerator
      * @var int
      * @access public
      */
-    private int $maxURLsPerSitemap = self::MAX_URLS_PER_SITEMAP;
+    private $maxUrlsPerSitemap = self::MAX_URLS_PER_SITEMAP;
     /**
      * If true, two sitemap files (.xml and .xml.gz) will be created and added to robots.txt.
      * If true, .gz file will be submitted to search engines.
@@ -86,21 +85,14 @@ class SitemapGenerator
      * @var bool
      * @access public
      */
-    private bool $isCompressionEnabled = false;
+    private $isCompressionEnabled = false;
     /**
      * URL to Your site.
      * Script will use it to send sitemaps to search engines.
      * @var string
      * @access private
      */
-    private string $baseURL;
-    /**
-     * URL to sitemap file(s).
-     * Script will use it to reference sitemap files in robots.txt and sitemap index.
-     * @var string
-     * @access private
-     */
-    private string $sitemapIndexURL;
+    private $baseURL;
     /**
      * Base path. Relative to script location.
      * Use this if Your sitemap and robots files should be stored in other
@@ -108,33 +100,34 @@ class SitemapGenerator
      * @var string
      * @access private
      */
-    private string $saveDirectory;
+    private $basePath;
     /**
      * Version of this class
      * @var string
      * @access private
      */
-    private string $classVersion = "5.0.0";
+    private $classVersion = "4.7.0";
     /**
      * Search engines URLs
      * @var array of strings
      * @access private
      */
-    private array $searchEngines = [
-        "https://webmaster.yandex.ru/ping?sitemap=",
+    private $searchEngines = [
+        "http://www.google.com/ping?sitemap=",
+        "http://www.webmaster.yandex.ru/ping?sitemap=",
     ];
     /**
      * Lines for robots.txt file that are written if file does not exist
      * @var array
      */
-    private array $sampleRobotsLines = [
+    private $sampleRobotsLines = [
         "User-agent: *",
         "Allow: /",
     ];
     /**
      * @var array list of valid changefreq values according to the spec
      */
-    private array $validChangefreqValues = [
+    private $validChangefreqValues = [
         'always',
         'hourly',
         'daily',
@@ -146,7 +139,7 @@ class SitemapGenerator
     /**
      * @var float[] list of valid priority values according to the spec
      */
-    private array $validPriorities = [
+    private $validPriorities = [
         0.0,
         0.1,
         0.2,
@@ -160,98 +153,88 @@ class SitemapGenerator
         1.0,
     ];
     /**
-     * @var IFileSystem object used to communicate with file system
+     * @var FileSystem object used to communicate with file system
      */
-    private IFileSystem $fs;
+    private $fs;
     /**
-     * @var IRuntime object used to communicate with runtime
+     * @var Runtime object used to communicate with runtime
      */
-    private IRuntime $runtime;
+    private $runtime;
 
     /**
      * @var XMLWriter Used for writing xml to files
      */
-    private XMLWriter $xmlWriter;
+    private $xmlWriter;
 
     /**
      * @var string
      */
-    private string $flushedSitemapFilenameFormat;
+    private $flushedSitemapFilenameFormat;
 
     /**
      * @var int
      */
-    private int $flushedSitemapSize = 0;
+    private $flushedSitemapSize = 0;
 
     /**
      * @var int
      */
-    private int $flushedSitemapCounter = 0;
+    private $flushedSitemapCounter = 0;
 
     /**
      * @var array
      */
-    private array $flushedSitemaps = [];
+    private $flushedSitemaps = [];
 
     /**
      * @var bool
      */
-    private bool $isSitemapStarted = false;
+    private $isSitemapStarted = false;
 
     /**
      * @var int
      */
-    private int $totalURLCount = 0;
+    private $totalUrlCount = 0;
 
     /**
      * @var int
      */
-    private int $urlsetClosingTagLen = 10; // strlen("</urlset>\n")
-    private int $sitemapURLCount = 0;
-    private array $generatedFiles = [];
+    private $urlsetClosingTagLen = 10; // strlen("</urlset>\n")
+    private $sitemapUrlCount = 0;
+    private $generatedFiles = [];
 
     /**
-     * @param IConfig $config Configuration object.
-     * @throws InvalidArgumentException
+     * @param string $baseURL You site URL
+     * @param string $basePath Relative path where sitemap and robots should be stored.
+     * @param FileSystem|null $fs
+     * @param Runtime|null $runtime
      */
-    public function __construct(IConfig $config)
+    public function __construct(string $baseURL, string $basePath = "", FileSystem $fs = null, Runtime $runtime = null)
     {
-        if ($config->getBaseURL() === '') {
-            throw new InvalidArgumentException('baseURL config parameter is required');
-        }
+        $this->baseURL = rtrim($baseURL, '/');
 
-        $this->baseURL = rtrim($config->getBaseURL(), '/');
-        $this->sitemapIndexURL = rtrim($config->getBaseURL(), '/');
-
-        if ($config->getSitemapIndexURL()) {
-            $this->sitemapIndexURL = rtrim($config->getSitemapIndexURL(), '/');
-        }
-
-        $configFS = $config->getFS();
-        if ($configFS === null) {
+        if ($fs === null) {
             $this->fs = new FileSystem();
         } else {
-            $this->fs = $configFS;
+            $this->fs = $fs;
         }
 
-        $configRuntime = $config->getRuntime();
-        if ($configRuntime === null) {
+        if ($runtime === null) {
             $this->runtime = new Runtime();
         } else {
-            $this->runtime = $configRuntime;
+            $this->runtime = $runtime;
         }
 
-        if ($this->runtime->is_writable($config->getSaveDirectory()) === false) {
+        if ($this->runtime->is_writable($basePath) === false) {
             throw new InvalidArgumentException(
-                sprintf('the provided basePath (%s) should be a writable directory,', $config->getSaveDirectory()) .
+                sprintf('the provided basePath (%s) should be a writable directory,', $basePath) .
                 ' please check its existence and permissions'
             );
         }
-
-        $this->saveDirectory = $config->getSaveDirectory();
-        if (strlen($this->saveDirectory) > 0 && substr($this->saveDirectory, -1) != DIRECTORY_SEPARATOR) {
-            $this->saveDirectory = $this->saveDirectory . DIRECTORY_SEPARATOR;
+        if (strlen($basePath) > 0 && substr($basePath, -1) != DIRECTORY_SEPARATOR) {
+            $basePath = $basePath . DIRECTORY_SEPARATOR;
         }
+        $this->basePath = $basePath;
 
         $this->xmlWriter = $this->createXmlWriter();
         $this->flushedSitemapFilenameFormat = sprintf("sm-%%d-%d.xml", time());
@@ -267,10 +250,7 @@ class SitemapGenerator
 
     /**
      * @param string $filename
-     *
      * @return SitemapGenerator
-     *
-     * @throws InvalidArgumentException
      */
     public function setSitemapFilename(string $filename = ''): SitemapGenerator
     {
@@ -287,7 +267,6 @@ class SitemapGenerator
     /**
      * @param string $path
      * @return SitemapGenerator
-     * @throws InvalidArgumentException
      */
     public function setSitemapStylesheet(string $path): SitemapGenerator
     {
@@ -300,10 +279,7 @@ class SitemapGenerator
 
     /**
      * @param string $filename
-     *
      * @return $this
-     *
-     * @throws InvalidArgumentException
      */
     public function setSitemapIndexFilename(string $filename = ''): SitemapGenerator
     {
@@ -317,7 +293,6 @@ class SitemapGenerator
     /**
      * @param string $filename
      * @return $this
-     * @throws InvalidArgumentException
      */
     public function setRobotsFileName(string $filename): SitemapGenerator
     {
@@ -331,16 +306,15 @@ class SitemapGenerator
     /**
      * @param int $value
      * @return $this
-     * @throws OutOfRangeException
      */
-    public function setMaxURLsPerSitemap(int $value): SitemapGenerator
+    public function setMaxUrlsPerSitemap(int $value): SitemapGenerator
     {
         if ($value < 1 || self::MAX_URLS_PER_SITEMAP < $value) {
             throw new OutOfRangeException(
                 sprintf('value %d is out of range 1-%d', $value, self::MAX_URLS_PER_SITEMAP)
             );
         }
-        $this->maxURLsPerSitemap = $value;
+        $this->maxUrlsPerSitemap = $value;
         return $this;
     }
 
@@ -361,19 +335,13 @@ class SitemapGenerator
         return $this->isCompressionEnabled;
     }
 
-    /**
-     * @param string $path
-     * @param string|null $changeFrequency
-     * @param float|null $priority
-     * @param array $extensions
-     * @return void
-     * @throws InvalidArgumentException
-     */
     public function validate(
         string   $path,
+        DateTime $lastModified = null,
         string   $changeFrequency = null,
         float    $priority = null,
-        array    $extensions = []): void
+        array    $alternates = null,
+        array    $extensions = [])
     {
         if (!(1 <= mb_strlen($path) && mb_strlen($path) <= self::MAX_URL_LEN)) {
             throw new InvalidArgumentException(
@@ -388,13 +356,13 @@ class SitemapGenerator
         if ($priority !== null && !in_array($priority, $this->validPriorities)) {
             throw new InvalidArgumentException("Priority argument should be a float number in the range [0.0..1.0]");
         }
-        if (count($extensions) > 0) {
+        if ($extensions !== null) {
             if (isset($extensions['google_video'])) {
                 GoogleVideoExtension::validate($this->baseURL . $path, $extensions['google_video']);
             }
 
             if (isset($extensions['google_image'])) {
-                GoogleImageExtension::validateEntryFields($extensions['google_image']);
+                GoogleImageExtension::validate($extensions['google_image']);
             }
         }
     }
@@ -411,9 +379,6 @@ class SitemapGenerator
      * @param array|null $alternates
      * @param array $extensions
      * @return $this
-     * @throws OutOfRangeException
-     * @throws UnexpectedValueException
-     * @throws InvalidArgumentException
      */
     public function addURL(
         string   $path,
@@ -424,9 +389,9 @@ class SitemapGenerator
         array    $extensions = []
     ): SitemapGenerator
     {
-        $this->validate($path, $changeFrequency, $priority, $extensions);
+        $this->validate($path, $lastModified, $changeFrequency, $priority, $alternates, $extensions);
 
-        if ($this->totalURLCount >= self::TOTAL_MAX_URLS) {
+        if ($this->totalUrlCount >= self::TOTAL_MAX_URLS) {
             throw new OutOfRangeException(
                 sprintf("Max url limit reached (%d)", self::TOTAL_MAX_URLS)
             );
@@ -437,11 +402,11 @@ class SitemapGenerator
 
         $this->writeSitemapUrl($this->baseURL . $path, $lastModified, $changeFrequency, $priority, $alternates, $extensions);
 
-        if ($this->totalURLCount % 1000 === 0 || $this->sitemapURLCount >= $this->maxURLsPerSitemap) {
+        if ($this->totalUrlCount % 1000 === 0 || $this->sitemapUrlCount >= $this->maxUrlsPerSitemap) {
             $this->flushWriter();
         }
 
-        if ($this->sitemapURLCount === $this->maxURLsPerSitemap) {
+        if ($this->sitemapUrlCount === $this->maxUrlsPerSitemap) {
             $this->writeSitemapEnd();
         }
 
@@ -468,40 +433,16 @@ class SitemapGenerator
         $this->isSitemapStarted = true;
     }
 
-    /**
-     * @param string $url
-     * @return string
-     * @throws UnexpectedValueException
-     */
-    private function encodeEscapeURL(string $url): string
-    {
+    private function encodeEscapeURL($url): string {
         // In-place encoding only on non-ASCII characters, like browsers do.
-        $encoded = preg_replace_callback('/[^\x20-\x7f]/', function ($match) {
+        $encoded = preg_replace_callback('/[^\x20-\x7f]/', function($match) {
             return urlencode($match[0]);
         }, $url);
-        if (!is_string($encoded)) {
-            throw new UnexpectedValueException('Failed to encode URL');
-        }
         return htmlspecialchars($encoded, ENT_QUOTES, 'UTF-8');
     }
 
-    /**
-     * @param string $loc
-     * @param DateTime|null $lastModified
-     * @param string|null $changeFrequency
-     * @param float|null $priority
-     * @param array|null $alternates
-     * @param array $extensions
-     * @throws UnexpectedValueException
-     */
-    private function writeSitemapUrl(
-        string   $loc,
-        DateTime $lastModified = null,
-        string   $changeFrequency = null,
-        float    $priority = null,
-        array    $alternates = null,
-        array    $extensions = []
-    ): void {
+    private function writeSitemapUrl($loc, $lastModified, $changeFrequency, $priority, $alternates, $extensions)
+    {
         $this->xmlWriter->startElement('url');
         $this->xmlWriter->writeElement('loc', $this->encodeEscapeURL($loc));
 
@@ -539,14 +480,14 @@ class SitemapGenerator
         }
 
         $this->xmlWriter->endElement(); // url
-        $this->sitemapURLCount++;
-        $this->totalURLCount++;
+        $this->sitemapUrlCount++;
+        $this->totalUrlCount++;
     }
 
-    private function flushWriter(): void
+    private function flushWriter()
     {
-        $targetSitemapFilepath = $this->saveDirectory . sprintf($this->flushedSitemapFilenameFormat, $this->flushedSitemapCounter);
-        $flushedString = $this->xmlWriter->outputMemory();
+        $targetSitemapFilepath = $this->basePath . sprintf($this->flushedSitemapFilenameFormat, $this->flushedSitemapCounter);
+        $flushedString = $this->xmlWriter->outputMemory(true);
         $flushedStringLen = mb_strlen($flushedString);
 
         if ($flushedStringLen === 0) {
@@ -562,23 +503,23 @@ class SitemapGenerator
         $this->fs->file_put_contents($targetSitemapFilepath, $flushedString, FILE_APPEND);
     }
 
-    private function writeSitemapEnd(): void
+    private function writeSitemapEnd()
     {
-        $targetSitemapFilepath = $this->saveDirectory . sprintf($this->flushedSitemapFilenameFormat, $this->flushedSitemapCounter);
+        $targetSitemapFilepath = $this->basePath . sprintf($this->flushedSitemapFilenameFormat, $this->flushedSitemapCounter);
         $this->xmlWriter->endElement(); // urlset
         $this->xmlWriter->endDocument();
-        $this->fs->file_put_contents($targetSitemapFilepath, $this->xmlWriter->flush(), FILE_APPEND);
+        $this->fs->file_put_contents($targetSitemapFilepath, $this->xmlWriter->flush(true), FILE_APPEND);
         $this->isSitemapStarted = false;
         $this->flushedSitemaps[] = $targetSitemapFilepath;
         $this->flushedSitemapCounter++;
-        $this->sitemapURLCount = 0;
+        $this->sitemapUrlCount = 0;
         $this->flushedSitemapSize = 0;
     }
 
     /**
      * Flush all stored urls from memory to the disk and close all necessary tags.
      */
-    public function flush(): void
+    public function flush()
     {
         $this->flushWriter();
         if ($this->isSitemapStarted) {
@@ -588,9 +529,8 @@ class SitemapGenerator
 
     /**
      * Move flushed files to their final location. Compress if necessary.
-     * @throws RuntimeException
      */
-    public function finalize(): void
+    public function finalize()
     {
         $this->generatedFiles = [];
 
@@ -600,7 +540,7 @@ class SitemapGenerator
                 $targetSitemapFilename .= '.gz';
             }
 
-            $targetSitemapFilepath = $this->saveDirectory . $targetSitemapFilename;
+            $targetSitemapFilepath = $this->basePath . $targetSitemapFilename;
 
             if ($this->isCompressionEnabled) {
                 $this->fs->copy($this->flushedSitemaps[0], 'compress.zlib://' . $targetSitemapFilepath);
@@ -609,7 +549,7 @@ class SitemapGenerator
                 $this->fs->rename($this->flushedSitemaps[0], $targetSitemapFilepath);
             }
             $this->generatedFiles['sitemaps_location'] = [$targetSitemapFilepath];
-            $this->generatedFiles['sitemaps_index_url'] = $this->sitemapIndexURL . '/' . $targetSitemapFilename;
+            $this->generatedFiles['sitemaps_index_url'] = $this->baseURL . '/' . $targetSitemapFilename;
         } else if (count($this->flushedSitemaps) > 1) {
             $ext = '.' . pathinfo($this->sitemapFileName, PATHINFO_EXTENSION);
             $targetExt = $ext;
@@ -620,8 +560,8 @@ class SitemapGenerator
             $sitemapsUrls = [];
             $targetSitemapFilepaths = [];
             foreach ($this->flushedSitemaps as $i => $flushedSitemap) {
-                $targetSitemapFilename = str_replace($ext, ((int)$i + 1) . $targetExt, $this->sitemapFileName);
-                $targetSitemapFilepath = $this->saveDirectory . $targetSitemapFilename;
+                $targetSitemapFilename = str_replace($ext, ($i + 1) . $targetExt, $this->sitemapFileName);
+                $targetSitemapFilepath = $this->basePath . $targetSitemapFilename;
 
                 if ($this->isCompressionEnabled) {
                     $this->fs->copy($flushedSitemap, 'compress.zlib://' . $targetSitemapFilepath);
@@ -629,24 +569,23 @@ class SitemapGenerator
                 } else {
                     $this->fs->rename($flushedSitemap, $targetSitemapFilepath);
                 }
-                $sitemapsUrls[] = htmlspecialchars(
-                    $this->sitemapIndexURL . '/' . $targetSitemapFilename, ENT_QUOTES);
+                $sitemapsUrls[] = htmlspecialchars($this->baseURL . '/' . $targetSitemapFilename, ENT_QUOTES);
                 $targetSitemapFilepaths[] = $targetSitemapFilepath;
             }
 
-            $targetSitemapIndexFilepath = $this->saveDirectory . $this->sitemapIndexFileName;
+            $targetSitemapIndexFilepath = $this->basePath . $this->sitemapIndexFileName;
             $this->createSitemapIndex($sitemapsUrls, $targetSitemapIndexFilepath);
             $this->generatedFiles['sitemaps_location'] = $targetSitemapFilepaths;
             $this->generatedFiles['sitemaps_index_location'] = $targetSitemapIndexFilepath;
-            $this->generatedFiles['sitemaps_index_url'] = $this->sitemapIndexURL . '/' . $this->sitemapIndexFileName;
+            $this->generatedFiles['sitemaps_index_url'] = $this->baseURL . '/' . $this->sitemapIndexFileName;
         } else {
             throw new RuntimeException('failed to finalize, please add urls and flush first');
         }
     }
 
-    private function createSitemapIndex(array $sitemapsUrls, string $sitemapIndexFileName): void
+    private function createSitemapIndex($sitemapsUrls, $sitemapIndexFileName)
     {
-        $this->xmlWriter->flush();
+        $this->xmlWriter->flush(true);
         $this->writeSitemapIndexStart();
         foreach ($sitemapsUrls as $sitemapsUrl) {
             $this->writeSitemapIndexUrl($sitemapsUrl);
@@ -654,11 +593,11 @@ class SitemapGenerator
         $this->writeSitemapIndexEnd();
         $this->fs->file_put_contents(
             $sitemapIndexFileName,
-            $this->xmlWriter->flush(),
+            $this->xmlWriter->flush(true),
         );
     }
 
-    protected function writeSitemapIndexStart(): void
+    protected function writeSitemapIndexStart()
     {
         $this->xmlWriter->startDocument("1.0", "UTF-8");
         $this->xmlWriter->writeComment(sprintf('generator-class="%s"', get_class($this)));
@@ -670,11 +609,7 @@ class SitemapGenerator
         $this->xmlWriter->writeAttribute('xsi:schemaLocation', 'http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd');
     }
 
-    /**
-     * @param string $url
-     * @throws UnexpectedValueException
-     */
-    private function writeSitemapIndexUrl(string $url): void
+    private function writeSitemapIndexUrl($url)
     {
         $this->xmlWriter->startElement('sitemap');
         $this->xmlWriter->writeElement('loc', $this->encodeEscapeURL($url));
@@ -682,7 +617,7 @@ class SitemapGenerator
         $this->xmlWriter->endElement(); // sitemap
     }
 
-    private function writeSitemapIndexEnd(): void
+    private function writeSitemapIndexEnd()
     {
         $this->xmlWriter->endElement(); // sitemapindex
         $this->xmlWriter->endDocument();
@@ -699,11 +634,12 @@ class SitemapGenerator
     /**
      * Will inform search engines about newly created sitemaps.
      * Google and Yandex will be notified.
+     * @param string $yahooAppId Your site Yahoo appid. This is a deprecated parameter and will be removed in future versions.
      * @return array of messages and http codes from each search engine
      * @access public
      * @throws BadMethodCallException
      */
-    public function submitSitemap(): array
+    public function submitSitemap($yahooAppId = null): array
     {
         if (count($this->generatedFiles) === 0) {
             throw new BadMethodCallException("To update robots.txt, call finalize() first.");
@@ -716,17 +652,17 @@ class SitemapGenerator
         for ($i = 0; $i < count($searchEngines); $i++) {
             $submitUrl = $searchEngines[$i] . htmlspecialchars($this->generatedFiles['sitemaps_index_url'], ENT_QUOTES);
             $curlResource = $this->runtime->curl_init($submitUrl);
-            if (is_bool($curlResource) && !$curlResource) {
+            if ($curlResource == false) {
                 throw new RuntimeException("failed to execute curl_init for url " . $submitUrl);
             }
-            if (!$this->runtime->curl_setopt($curlResource, CURLOPT_RETURNTRANSFER, true)) {
+            if ($this->runtime->curl_setopt($curlResource, CURLOPT_RETURNTRANSFER, true) == false) {
                 throw new RuntimeException(
                     "failed to set curl option CURLOPT_RETURNTRANSFER to true, error: "
                     . $this->runtime->curl_error($curlResource)
                 );
             }
             $responseContent = $this->runtime->curl_exec($curlResource);
-            if (is_bool($responseContent) && !$responseContent) {
+            if ($responseContent == false) {
                 throw new RuntimeException(
                     "failed to run curl_exec, error: " . $this->runtime->curl_error($curlResource)
                 );
@@ -759,7 +695,7 @@ class SitemapGenerator
             throw new BadMethodCallException("To update robots.txt, call finalize() first.");
         }
 
-        $robotsFilePath = $this->saveDirectory . $this->robotsFileName;
+        $robotsFilePath = $this->basePath . $this->robotsFileName;
 
         $robotsFileContent = $this->createNewRobotsContentFromFile($robotsFilePath);
 
@@ -769,38 +705,28 @@ class SitemapGenerator
     }
 
     /**
-     * @param string $filepath
+     * @param $filepath
      * @return string
-     * @throws RuntimeException
      */
-    private function createNewRobotsContentFromFile(string $filepath): string
+    private function createNewRobotsContentFromFile($filepath): string
     {
         if ($this->fs->file_exists($filepath)) {
-            $existingContent = $this->fs->file_get_contents($filepath);
-            // if $existingContent is bool and false, it means that file exists but is not readable
-            if (is_bool($existingContent) && !$existingContent) {
-                throw new RuntimeException("Failed to read existing robots.txt file: $filepath");
-            }
-            if (is_string($existingContent)) {
-                $contentLines = explode(PHP_EOL, $existingContent);
-            } else {
-                $contentLines = [];
-            }
-            $newContent = "";
-            foreach ($contentLines as $key => $line) {
-                if (str_starts_with($line, 'Sitemap:')) {
-                    unset($contentLines[$key]);
+            $robotsFileContent = "";
+            $robotsFile = explode(PHP_EOL, $this->fs->file_get_contents($filepath));
+            foreach ($robotsFile as $key => $value) {
+                if (substr($value, 0, 8) == 'Sitemap:') {
+                    unset($robotsFile[$key]);
                 } else {
-                    $newContent .= $line . PHP_EOL;
+                    $robotsFileContent .= $value . PHP_EOL;
                 }
             }
         } else {
-            $newContent = $this->getSampleRobotsContent();
+            $robotsFileContent = $this->getSampleRobotsContent();
         }
 
-        $newContent .= "Sitemap: {$this->generatedFiles['sitemaps_index_url']}";
+        $robotsFileContent .= "Sitemap: {$this->generatedFiles['sitemaps_index_url']}";
 
-        return $newContent;
+        return $robotsFileContent;
     }
 
     /**
