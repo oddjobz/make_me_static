@@ -4,7 +4,7 @@ Tags: static site generator, performance, security, stats, static
 Requires at least: 6.5
 Tested up to: 6.6.1
 Stable tag: 1.1.42
-Requires PHP: 7.0
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Static site generator using Git for storage. Comes with free integrated Git + Pages solution including Live WebStats.
