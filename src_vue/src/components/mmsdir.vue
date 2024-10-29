@@ -55,7 +55,7 @@
         </div>
         <div class="spin-wrapper" v-else-if="state==3"><NotAllowed :root="root" /></div>
         <div class="spin-wrapper" v-else-if="state==4"><BadSession :root="root" /></div>
-        <div class="spin-wrapper" v-else-if="state==6"><BadAuth :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state==6"><BadAuth :root="root" @reload="loadCrawler"/></div>
         <div class="spin-wrapper" v-else-if="state==7"><BadScheme :root="root" /></div>
         <div class="spin-wrapper" v-else-if="state==8"><BadComms :root="root" /></div>
         <div class="spin-wrapper" v-else-if="state==9"><BadLinks :root="root" /></div>
@@ -69,7 +69,7 @@
 <script setup>
 
 import ProgressSpinner from 'primevue/progressspinner';
-import { defineComponent, ref, watch, computed, inject, onMounted, toRaw, readonly } from 'vue';
+import { defineComponent, ref, watch, computed, inject, onMounted, toRaw, readonly, version, isReadonly } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLogger } from './OrbitLogger.js'
 import pkg from '../../package.json';
@@ -310,7 +310,7 @@ function loadRoute () {
 //  for different crawlers running different versions of the software)
 //
 
-function loadCrawler () {
+async function loadCrawler () {
     //
     //  This will hold a reference to our SCRIPT tag
     //
@@ -341,14 +341,39 @@ function loadCrawler () {
         log.error ('blocked load from: ', route.value.url)
         return
     }
+    //
+    //  New: next we need to get the version of the crawler so we can load
+    //  the right UI version from the CDN.
+    //
+    let response = ''
+    try {
+        log.debug ('Loading crawler version from: ' + route.value.url + '/webcrawler/get_version')
+        let data = await fetch (route.value.url + '/webcrawler/get_version')
+        response = await data.json()
+        log.debug ('Crawler version: ', response.version)
+    } 
+    catch (err) {
+        log.warning ('Faled to read crawler version: ', err.message)
+        state.value = 6
+        return
+    }
+    log.info ('Set Crawler: ' + route.value.url)
     window.MMS_API_Settings.crawler = route.value.url
     //
     //  Generate a URL to load, if we're on a development server then we'll be loading
     //  in DEV mode, otherwise it will be a minified asset.
     //
-    const url = new URL(route.value.url);
-    url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
-    url.search = 'ver=' + pkg.version
+    let url = new URL(route.value.url)
+    if (window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk") {
+        url.pathname = 'src/main.js'
+    } else {
+        let host = url.host
+        url = new URL('https://assets.makemestatic.com/' + response.version + '/assets/index.js')
+        url.search = 'ver=' + host  
+    }
+    // log.info (url.pathname)
+    // url.pathname = window.MMS_API_Settings.crawler == "https://mms-crawler-dev.madpenguin.uk" ? 'src/main.js' : 'assets/index.js'
+    // url.search = 'ver=' + pkg.version
     //
     //  This is our (very simple but effective) loader
     //
@@ -358,26 +383,28 @@ function loadCrawler () {
         //  Each crawler populates "mms_crawlers[url]" with a factory that can be used
         //  to generate new instances of the UI.
         //
-        const factory = window.make_me_static_crawlers.get(MMS_API_Settings.crawler)
+        const factory = window.make_me_static_crawlers.get(window.MMS_API_Settings.crawler)
         //
         //  Create a new instance of our VUE.js application
         //
-        crawler_app.value = factory.create()
-        //
-        //  Mount it inside the current window
-        //
-        crawler_app.value.mount('#make-me-static-crawler')
-        have_app.value = true;
-        //
-        //  Clear the spinner
-        //
-        setTimeout (() => { 
-            state.value = 0 
-        }, 1500)
-        //
-        //  Pass the current "route" info to the APP
-        //
-        setTimeout(() => emitRoute(), 500)
+        if (factory) {
+            crawler_app.value = factory.create()
+            //
+            //  Mount it inside the current window
+            //
+            crawler_app.value.mount('#make-me-static-crawler')
+            have_app.value = true;
+            //
+            //  Clear the spinner
+            //
+            setTimeout (() => { 
+                state.value = 0 
+            }, 1500)
+            //
+            //  Pass the current "route" info to the APP
+            //
+            setTimeout(() => emitRoute(), 500)
+        }
     });
     //
     //  This could happen ...

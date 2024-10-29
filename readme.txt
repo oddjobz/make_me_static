@@ -2,8 +2,8 @@
 Contributors: madpenguin
 Tags: static site generator, performance, security, stats, static
 Requires at least: 6.5
-Tested up to: 6.6.1
-Stable tag: 1.1.42
+Tested up to: 6.6.3
+Stable tag: 1.1.45
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -45,8 +45,12 @@ Make me static directory service URL's;
 * https://mms-directory-2.madpenguin.uk
 * https://mms-directory-3.madpenguin.uk
 
-These in turn will refererence the crawler allocated to the site in question. Crawler URLs typically take the form https://mms-crawler-(n).madpenguin.uk. For on-premesis crawlers the 
-url will also include a customer-id prefix, but will always end in ".madpenguin.uk".
+Other URL's used to load code;
+
+* https://assets.makemestatic.com, source for stage-2 crawler UI
+* https://status.makemestatic.com, endpoints that indicate the currently deployed version of a site
+* https://weblogs.makemestatic.com, source for dynamically loaded weblogs data / websockets
+* https://mms-crawler-*.madpenguin.uk, location of the actual crawlers (via websocket)
 
 Note that this in an integrated solution, the 3rd party crawling service is owned and operated by the plugin authors on a combination of cloud hosted and on premesis equipment.
 
@@ -217,6 +221,16 @@ https://makemestatic.com/
 Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
+
+= 1.1.45 =
+
+* Stage-2 loading now happens from CDN rather than crawler
+* Crawler access is now RVP'd
+
+= 1.1.43 =
+
+* Documentation update to support WordPress 6.6.3
+* LiveStats now available on all default git deployments
 
 = 1.1.42 =
 

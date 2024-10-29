@@ -18,6 +18,7 @@ const log           = useLogger()
 const message       = '<p>Unfortunately we have failed to load the User Interface from your designated Crawler. This is likely either to be an issue with the crawler in question, or your connection to the crawler.</p>'+
                         '<p>It is a transient error, please wait a few minutes and try again. If this issue does not resolve itself, please report the issue to us via one of the links below.</p>'
 const props         = defineProps(['root'])
+const emit          = defineEmits(['reload'])
 const checked       = computed(() => props.checked)
 const answer        = computed(() => props.answer)
 const aclass        = computed(() => "p-button-success" + (checked.value ? '' : ' hidden'))
@@ -41,9 +42,12 @@ function doConfirm () {
             {link: "https://support.madpenguin.uk"          , html: "Via our Support Forums"}
         ],
         icon: "pi pi-refresh",
-        rejectLabel: "I Understand",
+        rejectLabel: "ReTry",
         class: ['notify-content'],
-        acceptClass: aclass
+        acceptClass: aclass,
+        reject: () => {
+            emit ('reload')
+        },
     });
 }
 </script>

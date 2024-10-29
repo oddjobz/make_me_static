@@ -4,7 +4,7 @@ const c_info = 'color:white;font-weight:600;background-color:slateblue;padding:3
 const c_warn = 'color:black;font-weight:600;background-color:orange;padding:3px;border-radius:4px;margin-right:4px;padding-left:1em;padding-right:1em'
 const c_error = 'color:black;font-weight:600;background-color:crimson;padding:3px;border-radius:4px;margin-right:4px;padding-left:1em;padding-right:1em'
 
-const debug = false
+const debug = true
 
 class OrbitLogger {
 
