@@ -13,7 +13,7 @@ Static site generator using Git for storage. Comes with free integrated Git + Pa
 
 Welcome to the Make Me Static Plugin for Wordpress. This plugin is a static site generator and aims to create and maintain a static copy of your Wordpress website within a Git repository. This version includes automatic access to a free Git solution and Page provider platform. (so no setup or credentials are necessary)
 
-Alternatively the static site can be generated and stored in a GitLab Git Repository that can be used as a source for a static page platform such as CloudFlare Pages. The plugin provides a customised sitemap and change tracking which connects to an external crawling service which does all the heavy lifting.
+Alternatively the static site can be generated and stored in a GitLab Git Repository that can be used as a source for a static page platform such as CloudFlare Pages. The plugin provides customised sitemap and change tracking which connects to an external crawling service which does all the heavy lifting.
 
 We have made great efforts in this version to minimise the configuration required to get going, if you have any problems (with anything) please let is know and we'll do our best to help.
 
