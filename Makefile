@@ -44,7 +44,7 @@ set_target_dev:
 deploy_playground_zip:
 	$(eval VERSION := $(shell cat scripts/VERSION))
 	@echo Copying zip file to /downloads on test.makemestatic.com @ ${VERSION}
-	@scp build/make-me-static.zip root@aaa:/home/mms_pages/.local/mms_pages/sites/41d9bffcf58d7c04000ca728000487a9/public/downloads/make-me-static-${VERSION}.zip
+	@scp build/make-me-static.zip root@aaa:/home/mms_pages/.local/mms_pages/sites/41d9c9e56d4bf0ae000ca7280006a172/public/downloads/make-me-static-${VERSION}.zip
 	@scripts/set_playground_version.py ${VERSION}
 
 build_clean:

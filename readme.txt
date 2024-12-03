@@ -3,7 +3,7 @@ Contributors: madpenguin
 Tags: static site generator, performance, security, stats, static
 Requires at least: 6.5
 Tested up to: 6.6.3
-Stable tag: 1.1.45
+Stable tag: 1.1.48
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,7 +15,9 @@ Welcome to the Make Me Static Plugin for Wordpress. This plugin is a static site
 
 Alternatively the static site can be generated and stored in a GitLab Git Repository that can be used as a source for a static page platform such as CloudFlare Pages. The plugin provides customised sitemap and change tracking which connects to an external crawling service which does all the heavy lifting.
 
-We have made great efforts in this version to minimise the configuration required to get going, if you have any problems (with anything) please let is know and we'll do our best to help.
+We have made great efforts in this version to minimise the configuration required to get going, if you have any problems (with anything) please let is know and we'll do our best to help. Check out this YouTube video for an introduction to static front-ends and a walk-through of converting a pre-existing WordPress site into a WordPress site with a static front-end.
+
+https://youtu.be/ZJ5IDgZ9u-Q
 
 ### How the service works
 
@@ -221,6 +223,23 @@ https://makemestatic.com/
 Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
+
+= 1.1.48 =
+
+* Fix UUID regeneration following a backup / restore
+
+= 1.1.47 =
+
+* Force favicon.ico even if not present in metadata
+* Handle schemeless url in style src
+
+= 1.1.46 =
+
+* Improvements to watermarking (now completely automatic)
+* Better handling for "/" links
+* UI improvements for live Preview
+* UI improvements for live WebStats
+* Accumulated improvements for 'found' edge-cases
 
 = 1.1.45 =
 

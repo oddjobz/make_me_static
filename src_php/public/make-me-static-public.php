@@ -513,7 +513,6 @@ class make_me_static_Public {
 		}
 		$this->flush($tmpdir, $datdir);
 		if (move_dir($datdir, plugin_dir_path( __FILE__ ) . 'data', true) != true) {
-			// error_log('Error copying files, check permissions for: '.plugin_dir_path( __FILE__ ) . 'data');
 			exit;
 		}
 	}
@@ -661,12 +660,10 @@ class make_me_static_Public {
 		else
 			$meta = array();
 		if (!isset($meta[$host_id])) {
-			// error_log ('Host ID invalid: '.$host_id);
 			return false;
 		}
 		$manager = WP_Session_Tokens::get_instance( $user_id );
 		if (!$manager->verify( $meta[$host_id] )) {
-			// error_log ('Session token invalid: '.$meta[$host_id]);
 			return false;
 		}
 		return true;
@@ -749,6 +746,38 @@ class make_me_static_Public {
 		wp_send_json( array( 'message' => 'Session invalid or expired' ), 403);
 	}
 
+
+	/**
+	 * UnRegister the current UUID in the event the site_url changes
+	 *
+	 * @since		1.1.47
+	 * @access   	private
+	 * @param		$_GET['site']	
+	 * @param		$_GET['host_id']
+	 * @return    	WP_REST_Response 		200 if Ok or 401 if not admin or 403 if unauthorized
+	 * 
+	 */
+	private function api_unregister_host () {
+
+		$headers = getallheaders();
+		if (!isset($headers['X-Wp-Nonce']))
+				wp_send_json(array('message'=>'Missing nonce'),500);
+		if (!wp_verify_nonce(sanitize_text_field(wp_unslash($headers['X-Wp-Nonce'])), 'wp_rest'))
+				wp_send_json(array('message'=>'bad nonce'),500);
+		//
+		//      Needs to be an admin session
+		//
+		if (!current_user_can('administrator'))
+				wp_send_json( array( 'message' => 'Request was for not authorized' ), 401);
+		//
+		//      Remove the old key
+		//
+		if (!delete_option ('make-me-static-uuid'))
+				wp_send_json( array( 'message' => 'Delete Option Failed' ), 500);
+		//
+		wp_send_json( array( 'message' => 'Ok, UUID removed'), 200 );
+	}
+
 	/**
 	 * Register the current session. MMS identifies users via "host_id" which is 
 	 * negotiated via a public key encryptione exchange between the app and MMS.
@@ -765,14 +794,12 @@ class make_me_static_Public {
 	 */
 
 	 private function api_register_host () {
-		//
-		//	Verify the nonce
-		//
-		if (!isset($_SERVER['X-Wp-Nonce']))
-			wp_send_json(array('message'=>'Missing nonce'),500);
-		$nonce = sanitize_text_field(wp_unslash($_SERVER['X-Wp-Nonce']));
-		if (!wp_verify_nonce($nonce, 'wp-rest'))
-			wp_die ('bad nonce');
+
+		$headers = getallheaders();
+		if (!isset($headers['X-Wp-Nonce']))
+				wp_send_json(array('message'=>'Missing nonce'),500);
+		if (!wp_verify_nonce(sanitize_text_field(wp_unslash($headers['X-Wp-Nonce'])), 'wp_rest'))
+				wp_send_json(array('message'=>'bad nonce'),500);
 		//
 		//	Incoming parameters include the site (a uuid) and host_id
 		//
@@ -818,6 +845,7 @@ class make_me_static_Public {
 		global $wp_query;
 		$name = $wp_query->query_vars['name'];
 		if (preg_match('/^make_me_static_api_register_host-json$/', $name))		return $this->api_register_host();
+		if (preg_match('/^make_me_static_api_unregister_host-json$/', $name))	return $this->api_unregister_host();
 		if (preg_match('/^make_me_static_api_validate_host-json$/', $name))		return $this->api_validate_host();
 		if (preg_match('/^make_me_static_api_notify_changes-json$/', $name))	return $this->api_notify_changes();
 		if (preg_match('/^make_me_static_sitemap_comments-xml$/', $name))   	return $this->return_comments($name);		

@@ -1,6 +1,5 @@
 <!--
-    Account Disabled Component
-    Give the user some bad news ...
+    Option to change UUID if URL has changed
 -->
 <template>
     <div class="full-screen" />
@@ -17,35 +16,32 @@ const routeStore    = useRouteStore();
 const confirm       = useConfirm();
 const log           = useLogger()
 const props         = defineProps(['root', 'error'])
-const message       = "<p>We're having problems communicating with the Crawler service. Please can you make sure that your JSON API is enabled and that nothing in your configuration in re-writing or interfering with query strings.</p>"+
-                        (props.error ? `<p style="color:red;font-weight:500;text-align:center">${props.error}</p>` : '') +
-                        "<p>If you need help, please contact us using one of the links below</p>"
-const checked       = computed(() => props.checked)
-const answer        = computed(() => props.answer)
-const aclass        = computed(() => "p-button-success" + (checked.value ? '' : ' hidden'))
-
-// Convert this to be an error box
+const emit          = defineEmits(['regenerate'])
+const message       = "<p>Your <b>makemestatic</b> account is tagged to your site URL and it looks like your site URL has changed. "+
+                      "In order to continue you will either need to restore your old URL, or click below to generate a new <b>makemestatic</b> UUID.<p>"+
+                      "<p>If you have a paid subscription, once you have created a new UUID, please email your URL to <b>support@makemestatic.com</b> to transfer the subscription to the new UUID.</p>"+
+                      "<p>For more informtation:</p>"
+const rclass        = computed(() => "p-button-success hidden")
 
 onMounted(async () => {
-    doConfirm ()
-    console.log(props.error)
-})
-watch (answer, (curr,prev) => {
     doConfirm ()
 })
 function doConfirm () {
     confirm.require({
         group: 'confirmtac',
         message: message,
-        header: `Authentication Issue`,
+        header: `Site URL has Changed`,
         links: [
             {link: "mailto:support@madpenguin.uk"           , html: "Email our Support department"},
             {link: "https://support.madpenguin.uk"          , html: "Via our Support Forums"}
         ],
         icon: "pi pi-refresh",
-        rejectLabel: "I Understand",
+        acceptLabel: "Generate new UUID",
+        accept: () => {
+            emit ('regenerate')
+        },
         class: ['notify-content'],
-        acceptClass: aclass
+        rejectClass: rclass
     });
 }
 </script>

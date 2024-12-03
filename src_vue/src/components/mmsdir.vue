@@ -55,9 +55,10 @@
         </div>
         <div class="spin-wrapper" v-else-if="state==3"><NotAllowed :root="root" /></div>
         <div class="spin-wrapper" v-else-if="state==4"><BadSession :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state==5"><NewUUID :root="root" @regenerate="regenerateUUID"/></div>
         <div class="spin-wrapper" v-else-if="state==6"><BadAuth :root="root" @reload="loadCrawler"/></div>
         <div class="spin-wrapper" v-else-if="state==7"><BadScheme :root="root" /></div>
-        <div class="spin-wrapper" v-else-if="state==8"><BadComms :root="root" /></div>
+        <div class="spin-wrapper" v-else-if="state==8"><BadComms :root="root" :error="error"/></div>
         <div class="spin-wrapper" v-else-if="state==9"><BadLinks :root="root" /></div>
         <div class="spin-wrapper" v-else-if="state!=0"><Unknown :root="root" /></div>
         <div class="main-display" v-show="state==0 && !is_disabled">
@@ -81,6 +82,7 @@ import BadAuth from "@/components/dialog_badauth.vue";
 import BadScheme from "@/components/dialog_badscheme.vue";
 import BadComms from "@/components/dialog_badcomms.vue";
 import BadLinks from "@/components/dialog_badlinks.vue";
+import NewUUID from "@/components/dialog_newuuid.vue";
 import Unknown from "@/components/dialog_unknown.vue";
 import ConfirmDialog from 'primevue/confirmdialog';
 import Checkbox from 'primevue/checkbox';
@@ -120,6 +122,7 @@ const root          = computed(() => {
 const app_style     = computed(() => have_app.value ? "height:100%;width:100%" : "height:0;width:0")
 const errors        = computed(() => connection.errors)
 const error_host    = computed(() => connection.error_host)
+const error         = ref('')
 const auth1         = computed(() => connection.authenticated)
 const auth2         = ref(false)
 const state         = ref(1)
@@ -283,6 +286,27 @@ async function registerWordpressCall (url, response) {
     return await fetch(url.href, {method: 'GET', headers: {'X-WP-Nonce': nonce.value}})
 }
 //
+//  Come here if our Site URL has changed and we need to regenerate our UUID
+//
+//
+async function regenerateUUID () {
+    log.info ("Regen UUID")
+    state.value = 1
+
+    let url = get_base_url (apiurl.value ) + '/make_me_static_api_unregister_host.json'
+    log.info (`Using backup base: ${url}`)
+    let response = await registerWordpressCall (new URL(url))
+    // if (response.status == 200) {
+
+    // let url = get_base_url (apiurl.value ) + 'make_me_static_api_unregister_host.json'
+    // log.info (`Using backup base: ${url}`)
+    // log.info (`Nonce: ${nonce.value}`)
+    // const response = await fetch(new URL(url), {method: 'GET', headers: {'X-WP-Nonce': nonce.value}})
+    log.info (response)
+    state.value = 1
+    location.reload ()
+}
+//
 //  loadRoute - attempt to populate the routeStore cache, assuming this works
 //  tell the workflow we've completed this stage. This connection is authenticated
 //  so if it fails, we're not allowed to do this.
@@ -290,14 +314,23 @@ async function registerWordpressCall (url, response) {
 function loadRoute () {
     if (!route_ids.value.length) {
         let store = routeStore.init(app, root.value, socket.value)
-        store.populate(root.value, (response) => {
-            if (!response || !response.ok || !route_ids.value.length) {
-                log.error ("failed to populate routeStore", response)
-                unauthorized.value = true
-                state.value = 8
-                return
+        store.call (root.value, 'check_credentials', store.mms, (response) => {
+            if (response.ok) {           
+                store.populate(root.value, (response) => {
+                    if (!response || !response.ok || !route_ids.value.length) {
+                        log.error ("failed to populate routeStore", response)
+                        unauthorized.value = true
+                        if (response.error) {
+                            error.value = response.error
+                        }
+                        state.value = 8
+                        return
+                    }
+                    have_route.value = true
+                })
+            } else {
+                state.value = 5
             }
-            have_route.value = true
         })
     } else {
         loadCrawler()
