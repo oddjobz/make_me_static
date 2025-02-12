@@ -2,8 +2,8 @@
 Contributors: madpenguin
 Tags: static site generator, performance, security, stats, static
 Requires at least: 6.5
-Tested up to: 6.6.3
-Stable tag: 1.1.48
+Tested up to: 6.7.2
+Stable tag: 1.1.51
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -223,6 +223,16 @@ https://makemestatic.com/
 Screenshots and images are stored in the /assets directory.
 
 == Changelog ==
+
+= 1.1.51 =
+
+* Minor tweaks to keep up with new Wordpress Versions
+
+= 1.1.49 =
+
+* New Year Release
+* Versious speedups
+* Fixed issue with some XSL files in nested sitemaps
 
 = 1.1.48 =
 
